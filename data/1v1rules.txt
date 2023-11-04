@@ -1,0 +1,21 @@
+Rules for Old School 1v1 Ladder are as follows:
+**1:**
+	You may only challenge the person directly above you. No hopping multiple spots at once. If you have already been challenged, you cannot challenge someone else until you complete the current challenge. If someone has an existing challenge they cannot be challenged until resolved. 
+**2:** 
+	If challenged you must accept the challenge and play within one week or you forfeit your spot to the challenger, and will be locked into your new position until you respond. If the person that challenged is not working to secure a time to play they forfeit their challenge and will be locked, not auto advance if you aren't putting in an obvious and clear good faith effort to play.. 
+**3:**
+	This is barring any real life obligation that is keeping you from playing for that week. You can, if you choose, forfeit if you so desire and waive the one week time period.
+**4:** 
+	If you do need to take an extended break from the 1v1, but would like to come back to it once you're able, please let me know. We will "lock you in" to where you are and allow challenges around you until you are able to return. 
+**5:** 
+	Matches will be best of 3. Each competitor will host one match each for games 1 and 2. Game 3 host will be determined by a /cointoss command decided between the two competitors. Loss of internet connection will trigger a restart of that game at as close to the same amount of time as possible with the same score. If you would like to invite others to watch that will be up to the competitors. Games can also be hosted in a neutral region if desired. Example: NAW & EU may choose to play on NAE. 
+**6:** 
+	The loser of the match cannot challenge the winner who just beat them for atleast 48 hours 
+**7:**
+	if either players get overtaken or move up, the cool off ends 
+**8:** 
+	If you wish to join you will have to start at the bottom and work your way up regardless of rank. 
+**9:**
+	Rules will be subject to change based on competitors/admin suggestions and to accommodate any future growth. 
+
+Main rule? Have fun.

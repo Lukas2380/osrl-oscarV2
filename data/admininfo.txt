@@ -1,0 +1,21 @@
+
+If you can see this, I just want you to know I love you.
+Also please do not share these with anyone, these commands are for admin only, use them in the <#1099011452389568673> channel only.
+
+
+
+
+**-/add (name) (position)**
+	This command adds a player to the position you select.
+    
+**-/remove (name)**
+	This command removes the player named
+
+**-/lock (name)**
+	Locks player
+
+**-/view-locked**
+	shows list of locked players
+
+**-/unlock (name)**
+	unlocks player

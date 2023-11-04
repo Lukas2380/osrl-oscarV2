@@ -32,7 +32,6 @@ async def reload(interaction, extension: str):
 @bot.event
 async def on_connect():
     await load_cogs()
-    await bot.sync_commands()
 
 @bot.event
 async def on_ready():

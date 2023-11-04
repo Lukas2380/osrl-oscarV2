@@ -1,0 +1,26 @@
+	
+
+I am the Old School 1v1 Ladder Bot, and I control the 1v1 ladder. 
+Below are a list of the commands you can submit in the <#1098739590820540506> channel	
+	
+Commands:
+
+**-/results (w or l)**
+	This command is how you submit results of matches, the winner or loser may submit the results, w if you are the winner, l if you are the loser.
+
+**-/ladder**
+	This command will return with the updated ladder.
+
+**-/challenge (player)**
+	This command places the message author in a challenge with the name stated.
+	
+**-/active**
+	This command lists the active challenges.
+
+**-/join**
+	This command will add the user that sent the message to the bottom of the ladder.
+    
+**-/cointoss**
+	This command can be used to give a heads or tails result to decide which region the 3rd game will take place in.
+
+If you have any questions, problems, or suggestions, message my creater Xulu.
