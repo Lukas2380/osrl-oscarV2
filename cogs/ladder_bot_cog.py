@@ -1,0 +1,286 @@
+import random
+import typing
+import discord
+from discord.ext import commands
+from discord import app_commands, Embed
+from datetime import datetime, timedelta
+
+class LadderBot_cog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.load_data()
+
+    def load_data(self):
+        # Read files and initialize variables
+        with open('./data/leaderboard.txt','r+') as file:
+            data = file.read()
+            self.leaderboard = data.split('\n')
+            self.leaderboard.pop(-1)
+
+        with open('./data/activeChallenges.txt','r+') as file:
+            data = file.read()
+            self.activeChallenges = data.split('\n')
+            self.activeChallenges.pop(-1)
+
+        with open('./data/lockedPlayers.txt','r+') as file:
+            data = file.read()
+            self.locked_players = data.split('\n')
+            self.locked_players.pop(-1)
+
+    @app_commands.command(name="ladder", description="Show the current ladder")
+    async def ladder(self, interaction):
+        ladder = ''
+
+        for person in self.leaderboard:
+            swords = ''
+            rank = 1 + self.leaderboard.index(person)
+
+            # Check if the person is in the activeChallenges list
+            for element in self.activeChallenges:
+                if person in element:
+                    swords = ':crossed_swords:'
+
+            try:
+                username = interaction.guild.get_member(int(person)).display_name
+                ladder += f'{rank}. {username}{swords}\n'
+            except:
+                await interaction.response.send_message(f'Error while trying to get the username of the user: {person}')
+
+        response = Embed(title='Current Ladder: ', description=ladder, color=0x0ccff)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="active", description="Show active challenges")
+    async def active(self, interaction):
+        activeChallenges = 'No active challenges'
+
+        if len(self.activeChallenges) > 0:
+            activeChallenges = "```\n"
+            activeChallenges += "{:<22} {:<22} {:<15}\n".format("First Player", "Second Player", "Date")
+            
+            for challenge in self.activeChallenges:
+                firstPlayer, secondPlayer, date = challenge.split(" - ")
+
+                try:
+                    firstPlayer = interaction.guild.get_member(int(firstPlayer)).display_name
+                    secondPlayer = interaction.guild.get_member(int(secondPlayer)).display_name
+                    activeChallenges += "{:<22} {:<22} {:<15}\n".format(firstPlayer, secondPlayer, date)
+                except:
+                    await interaction.response.send_message(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
+
+            activeChallenges += "```\n"
+
+        response = Embed(title='Active Challenges', description=activeChallenges, color=0x0ccff)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="challenge", description="Challenge the player above you")
+    async def challenge(self, interaction):
+        playerIsInLeaderboard = False
+        playerAlreadyInChallenge = False
+        playerAboveAlreadyInChallenge = False
+        player = interaction.user
+
+        for leaderboardEntry in self.leaderboard:
+            if str(player.id) in leaderboardEntry:
+                playerIsInLeaderboard = True
+
+                playerRank = self.leaderboard.index(str(player.id))
+                playerAboveId = self.leaderboard[playerRank - 1 ]
+                
+                # Check if anyone is already in a challenge
+                for activeChallenge in self.activeChallenges:
+                    if str(player.id) in activeChallenge:
+                        playerAlreadyInChallenge = True
+                        response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=0xFF5733)
+                    elif playerAboveId in activeChallenge:
+                        playerAboveAlreadyInChallenge = True
+                        response = Embed(title="Error", description="The player above is already in a challenge", color=0xFF5733)
+                
+                if not playerAlreadyInChallenge and not playerAboveAlreadyInChallenge:
+                    
+                    date = datetime.now() + timedelta(days=7)
+                    date = date.strftime("%x")
+
+                    self.activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date}')
+
+                    with open('./data/activeChallenges.txt', "w+") as file:
+                        for activeChallenge in self.activeChallenges:
+                            file.write(activeChallenge+'\n')
+                    response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {playerAboveId} \n\nis scheduled to be completed by: {date}')
+                break
+        if not playerIsInLeaderboard:
+            response = Embed(title="Error", description=f'User: {player.mention} was not found in the leaderboard')
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="results", description="Submit the results of a challenge")
+    async def results(self, interaction, result: typing.Literal["W", "L"]):
+        player = interaction.user
+        noActiveChallenge = True
+
+        for challenge in self.activeChallenges:
+            if str(player.id) in challenge:
+                noActiveChallenge = False
+
+                self.activeChallenges.remove(challenge)
+
+        if noActiveChallenge:
+            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=0xFF5733)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="join", description="Join the ladder!")
+    async def join(self, interaction):
+        player = str(interaction.user.id)
+
+        self.leaderboard.append(player)
+        with open('./data/leaderboard.txt','w')as file:
+            for x in self.leaderboard:
+                file.write(x+'\n')
+        
+        response = Embed(title='Player added', description=f'Try not to get wrecked', color=0x0ccff)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="add", description="Add a player")
+    async def add(self, interaction, player: discord.User, position: int):
+        if position > 0:
+            self.leaderboard.insert(position-1,str(player.id))
+            response=Embed(title="Player added", description=f'{player.mention} added in the {position} position', color=0x0ccff)
+        elif position == 0:
+            self.leaderboard.append(player.id)
+
+        with open('./data/leaderboard.txt', 'w') as file:
+            for entry in self.leaderboard:
+                file.write(entry+'\n')
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="remove", description="Remove a player")
+    async def remove(self, interaction, player: discord.User):
+
+        for leaderboardEntry in self.leaderboard:
+            if str(player.id) in leaderboardEntry:
+                playerIndex = self.leaderboard.index(str(player.id))
+                self.leaderboard.pop(playerIndex)
+
+                with open("./data/leaderboard.txt", "w") as file:
+                    file.truncate(0)
+                    for entry in self.leaderboard:
+                        file.write(entry + '\n')
+
+                for challenge in self.activeChallenges:
+                    if str(player.id) in challenge:
+                        self.activeChallenges.remove(challenge)
+                
+                response = Embed(title="Player removed", description=f'Player {player} removed from the ladder', color=0x0ccff)
+            else:
+                response = Embed(title="Error", description=f'Player {player} not recognized.', color=0xFF5733)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="cointoss", description="Toss a coin!")
+    async def cointoss(self, interaction):
+        r = random.randint(1,2)
+        if r == 1:
+            result = "Heads!"
+        else:
+            result = "Tails!"
+        response = Embed(title='Result:', description=result, color=0x0ccff)
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="view-locked", description="View currently locked players")
+    async def viewlocked(self, interaction):
+
+        if self.locked_players:
+            embed_description = "```\n"
+            embed_description += "{:<20} {:<15} {:<10}\n".format("Name", "Date Locked", "Rank")
+
+            for locked_player in self.locked_players:
+                rank, name, date = locked_player.split(' - ')
+
+                try:
+                    username = interaction.guild.get_member(int(name)).display_name
+                except:
+                    await interaction.response.send_message(f'Error while trying to get the username of the user: {name}')
+
+                embed_description += "{:<20} {:<15} {:<10}\n".format(username, date, rank)
+            embed_description += "```\n"
+            response = Embed(
+                title='Locked players',
+                description=embed_description,
+                color=0x0ccff
+            )
+        else:
+            response = Embed(
+                title='Empty',
+                description='No players currently locked',
+                color=0xFF5733
+            )
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="lock", description="Lock a player")
+    async def lock(self, interaction, player: discord.User):
+        foundPlayerInLeaderboard = False
+        alreadyLocked = False
+
+        # Search for the player in the leaderboard
+        for leaderboardEntry in self.leaderboard:
+            if str(player.id) in leaderboardEntry:
+                foundPlayerInLeaderboard = True
+
+                # Search for the player in the list of already locked players
+                for locked_player in self.locked_players:
+                    if str(player.id) in locked_player:
+                        alreadyLocked = True
+
+                # Lock player
+                if not alreadyLocked:
+                    for challenge in self.activeChallenges:
+                        if str(player.id) in challenge:
+                            self.activeChallenges.remove(challenge)
+
+                    # Remove player from the leaderboard and add them to the locked player list
+                    for leaderboardline in self.leaderboard:
+                        if str(player.id) in leaderboardline:
+                            leaderboardIndex = self.leaderboard.index(str(player.id))
+                            self.leaderboard.pop(leaderboardIndex)
+
+                            date = datetime.now().strftime("%x")
+                            self.locked_players.append(f'{leaderboardIndex+1} - {player.id} - {date}')
+
+                    with open("./data/lockedPlayers.txt","a") as file:
+                        for locked_player in self.locked_players:
+                            file.write(f"{locked_player}\n")
+
+                    with open('./data/leaderboard.txt', "w") as file:
+                        for leaderboardEntry in self.leaderboard:
+                            file.write(f'{leaderboardEntry}\n')
+
+                    response=Embed(title='Player Locked', description=f'Player locked untilf further notice', color=0x0ccff)
+
+        if not foundPlayerInLeaderboard:
+            response = Embed(title='Player not found', description=f'Player was not found in the leaderboard')
+        elif alreadyLocked:
+            response = Embed(title='Player already locked', description=f'The player is already in the locked player list')
+
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="unlock", description="Unlock a player")
+    async def unlock(self, interaction, player: discord.User):
+        
+        for locked_player in self.locked_players:
+            if str(player.id) in locked_player:
+                self.locked_players.remove(locked_player)
+
+                rank, playerName, date = locked_player.split(' - ')
+                self.leaderboard.insert(int(rank)-1, str(player.id))
+                
+                with open('./data/lockedPlayers.txt', 'w+') as file:
+                    file.truncate(0)
+                    for locked_player in self.locked_players:
+                        file.write(f"{locked_player}\n")
+                
+                with open('./data/leaderboard.txt', 'w+') as file:
+                    for leaderboardEntry in self.leaderboard:
+                        file.write(f'{leaderboardEntry}\n')
+                
+                response = Embed(title="Unlocked", description="Player unlocked", color=0x0ccff)
+                await interaction.response.send_message(embed=response)
+
+async def setup(bot:commands.Bot) -> None:
+    await bot.add_cog(LadderBot_cog(bot))

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-class Commands_Cog(commands.Cog):
+class VCCommands_Cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -35,4 +35,4 @@ class Commands_Cog(commands.Cog):
 
 
 async def setup(bot:commands.Bot) -> None:
-    await bot.add_cog(Commands_Cog(bot))
+    await bot.add_cog(VCCommands_Cog(bot))

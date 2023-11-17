@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import asyncio
 
-class ChannelGeneratorCog(commands.Cog):
+class VCGeneratorCog(commands.Cog):
     created_channels = []  # Initialize a global list to track created channels
 
     def __init__(self, bot):
@@ -35,4 +35,4 @@ class ChannelGeneratorCog(commands.Cog):
                 await channel.delete()
 
 async def setup(bot):
-    await bot.add_cog(ChannelGeneratorCog(bot))
+    await bot.add_cog(VCGeneratorCog(bot))

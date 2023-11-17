@@ -1,5 +1,6 @@
 import os
 import asyncio
+import typing
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -24,13 +25,13 @@ async def unload(interaction, extension: str):
     await interaction.response.send_message(f"Bot unloaded extension: {extension}")
 
 @bot.tree.command(name="reload", description="Reload a cog")
-async def reload(interaction, extension: str):
+async def reload(interaction, extension: typing.Literal["ladder_bot_cog"]):
     await bot.reload_extension(f'cogs.{extension}')
     print(f'Bot reloaded extension: cogs.{extension}')
     await interaction.response.send_message(f"Bot reloaded extension: {extension}")
 
 @bot.event
-async def on_connect():
+async def on_connect(): 
     await load_cogs()
 
 @bot.event
