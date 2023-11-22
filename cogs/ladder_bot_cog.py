@@ -43,23 +43,31 @@ class LadderBot_cog(commands.Cog):
         channel = guild.get_channel(channel_id)
 
         if channel:
-            ladder_table = "```\n"
+            ladder_table = "Rank - Player - Challenge - Wins - Losses - Streak"
+            ladder_table += "```\n"
             active_challenges = 'No active challenges'
 
             # Check if there are any entries in the leaderboard
             if self.leaderboard:
-                ladder_table += "{:<5} {:<22} \n".format("Rank", "Player")
+                
                 for person in self.leaderboard:
+                    wins = 0
+                    losses = 0
+                    streak = 0
                     swords = ''
-                    rank = 1 + self.leaderboard.index(person)
+                    
                     # Check if the person is in the activeChallenges list
                     for element in self.activeChallenges:
                         if person in element:
                             swords = "⚔️"  # Unicode character for crossed swords emoji
-                            
+
+                    for element in self.stats:
+                        if person in element:
+                            user, wins, losses, streak = element.split(" - ")
+
                     try:
                         username = guild.get_member(int(person)).display_name
-                        ladder_table += "{:<5} {:<22} \n".format(rank, username + swords)
+                        ladder_table += "- {:<36} - {:<2} - {:<1} - {:<1} - {:<1}\n".format(username, swords, wins, losses, streak)
                     except:
                         await channel.send(f'Error while trying to get the username of the user: {person}')
 
@@ -67,8 +75,8 @@ class LadderBot_cog(commands.Cog):
 
             # Active Challenges
             if len(self.activeChallenges) > 0:
-                active_challenges = "```\n"
-                active_challenges += "{:<22} {:<22} {:<15}\n".format("First Player", "Second Player", "Date")
+                active_challenges = "First Player - Second Player - Date\n"
+                active_challenges += "```\n"
                 
                 for challenge in self.activeChallenges:
                     firstPlayer, secondPlayer, date = challenge.split(" - ")
@@ -76,7 +84,7 @@ class LadderBot_cog(commands.Cog):
                     try:
                         firstPlayer = guild.get_member(int(firstPlayer)).display_name
                         secondPlayer = guild.get_member(int(secondPlayer)).display_name
-                        active_challenges += "{:<22} {:<22} {:<15}\n".format(firstPlayer, secondPlayer, date)
+                        active_challenges += "- {:<15} - {:<15} - {:<10}\n".format(firstPlayer, secondPlayer, date)
                     except:
                         await channel.send(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
 
@@ -169,6 +177,10 @@ class LadderBot_cog(commands.Cog):
 
         response = Embed(title='Active Challenges', description=activeChallenges, color=0x0ccff)
         await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="stats", description="Show the stats for the 1s ladder")
+    async def stats(self, interaction):
+        print("tbd")
 
     @app_commands.command(name="challenge", description="Challenge the player above you")
     async def challenge(self, interaction):
