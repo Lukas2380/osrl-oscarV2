@@ -13,19 +13,19 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 @bot.tree.command(name="load", description="Load a cog")
-async def load(interaction, extension: str):
+async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await bot.load_extension(f'cogs.{extension}')
     print(f'Bot loaded extension: {extension}')
     await interaction.response.send_message(f"Bot loaded extension: {extension}")
 
 @bot.tree.command(name="unload", description="Unload a cog")
-async def unload(interaction, extension: str):
+async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await bot.unload_extension(f'cogs.{extension}')
     print(f'Bot unloaded extension: {extension}')
     await interaction.response.send_message(f"Bot unloaded extension: {extension}")
 
 @bot.tree.command(name="reload", description="Reload a cog")
-async def reload(interaction, extension: typing.Literal["ladder_bot_cog"]):
+async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await bot.reload_extension(f'cogs.{extension}')
     print(f'Bot reloaded extension: cogs.{extension}')
     await interaction.response.send_message(f"Bot reloaded extension: {extension}")
