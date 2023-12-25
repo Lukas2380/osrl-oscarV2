@@ -1,5 +1,6 @@
 import asyncio
 import random
+import re
 import typing
 import discord
 from discord.ext import commands
@@ -17,9 +18,11 @@ class LadderBot_cog(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         for guild in self.bot.guilds:
-            if len(self.stats) == 0:
-                await self.getoldstats(guild)
-            await self.update_ladder(guild)
+            if guild.id == 1150003077961756706:
+                print(self.bot.guilds)
+                if len(self.stats) == 0:
+                    await self.getoldstats(guild)
+                await self.update_ladder(guild)
 
     def load_data(self):
         # Read files and initialize variables
@@ -127,11 +130,14 @@ class LadderBot_cog(commands.Cog):
                 player, wins, losses, streak = stat.split(' - ')
                 if win:
                     wins = int(wins) + 1
-                    streak = int(streak) + 1
+                    if int(streak) < 0:
+                        streak = 1
+                    else:
+                        streak = int(streak) + 1
                 else:
                     losses = int(losses) + 1
                     if int(streak) > 0:
-                        streak = 0
+                        streak = -1
                     else:
                         streak = int(streak) - 1
 
@@ -142,7 +148,7 @@ class LadderBot_cog(commands.Cog):
             if win:
                 self.stats.append(f'{player} - 1 - 0 - 1')
             else:
-                self.stats.append(f'{player} - 0 - 1 - 0')
+                self.stats.append(f'{player} - 0 - 1 - -1')
 
         self.writeToFile('stats', self.stats)
 
@@ -517,8 +523,10 @@ class LadderBot_cog(commands.Cog):
         newActiveChallenges = []
         newLockedPlayers = []
 
+        print(interaction.guild)
+
         for person in self.leaderboard:
-            user_id = await self.get_user_id(interaction, person)
+            user_id = await self.get_user_id(interaction.guild, person)
             newLeaderboard.append(user_id)
 
         self.writeToFile("leaderboard", newLeaderboard)
@@ -527,8 +535,8 @@ class LadderBot_cog(commands.Cog):
         for challenge in self.activeChallenges:
             firstPlayer, secondPlayer, date = challenge.split(" - ")
 
-            firstPlayerID = await self.get_user_id(interaction, firstPlayer)
-            secondPlayerID = await self.get_user_id(interaction, secondPlayer)
+            firstPlayerID = await self.get_user_id(interaction.guild, firstPlayer)
+            secondPlayerID = await self.get_user_id(interaction.guild, secondPlayer)
             newActiveChallenges.append(f"{firstPlayerID} - {secondPlayerID} - {date}")
 
         self.writeToFile("activeChallenges", newActiveChallenges)
@@ -536,7 +544,7 @@ class LadderBot_cog(commands.Cog):
 
         for locked_player in self.locked_players:
             rank, username, date = locked_player.split(' - ')
-            user_id = await self.get_user_id(interaction, username)
+            user_id = await self.get_user_id(interaction.guild, username)
             newLockedPlayers.append(f"{rank} - {user_id} - {date}")
 
         self.writeToFile("lockedPlayers", newLockedPlayers)
@@ -549,30 +557,52 @@ class LadderBot_cog(commands.Cog):
     @app_commands.command(name="update-ladder", description="Command for manually updating the ladder")
     async def updateladder(self, interaction):
         self.load_data()
-        self.update_ladder(interaction.guild)
+        await self.update_ladder(interaction.guild)
+        response = Embed(title="Ladder Updated", description="The ladder has been updated.", color=self.blue)
+        await interaction.response.send_message(embed=response)
 
-    async def getoldstats(self, interaction): 
-        print("Fetching old stats")
+    @app_commands.command(name="test", description="Command")
+    async def test(self, interaction):
+        response = Embed(title="Results accepted", description="Congratulations lordlukas__2380! You have won the match!", color=self.blue)
+        await interaction.response.send_message(embed=response)
+
+    async def getoldstats(self, guild):
+        print("...Fetching old stats because the stats file is empty")
         channel_id = 1150003078796415054
         channel = self.bot.get_channel(channel_id)
+        challenges = []
         
-        async for message in channel.history(limit=10, oldest_first=False):
+        async for message in channel.history(limit=1050, oldest_first=True):
             if message.author.id == 381063088842997763:
                 if message.content.startswith('Challenge between'):
                     players = message.content.split(' between ')[1].split(' and ')
                     first_player = players[0].strip('@')
                     second_player = players[1].strip('@')[0:players[1].index(' is')]
-                    print(f"First player: {first_player}, Second player: {second_player}")
 
-                    first_playerID = self.get_user_id(interaction.guild, first_player)
-                    second_playerID = self.get_user_id(interaction.guild, second_player)
-                    print(f"First player: {first_playerID}, Second player: {second_playerID}")
+                    first_playerID = first_player.replace('<@', '').replace('>', '')
+                    second_playerID = second_player.replace('<@', '').replace('>', '')
 
-        print("done")
+                    challenges.append(f"{first_playerID},{second_playerID}")
+                
+            for embed in message.embeds:
+                if embed.title == "Results accepted" and embed.description.startswith('Congratulations'):
+                    # Look in the challenges list and give the win and loss to the people in the challenge
+                    player = await self.get_user_id(guild, embed.description[16: embed.description.index("!")])
 
+                    for challenge in challenges:
+                        if player in challenge:
+                            otherplayer = challenge.replace(player, "").replace(",", "")
+                            self.update_stats(str(player), win=True)
+                            self.update_stats(str(otherplayer), win=False)
+
+                            challenges.remove(challenge)
+                            break
 
     async def get_user_id(self, guild, person):
-        person = str.lower(person)
+        #person = str.lower(person)
+        
+        if person.startswith("<@"):
+            person = re.search(r'\d+', person).group()
 
         attributes_to_search = ['name', 'nick', 'display_name', 'id']
         for attribute in attributes_to_search:
@@ -592,23 +622,3 @@ class LadderBot_cog(commands.Cog):
 
 async def setup(bot:commands.Bot) -> None:
     await bot.add_cog(LadderBot_cog(bot))
-
-    #if embed.title == "Results accepted" and embed.description.startswith("Congratulations"):
-                #player = embed.description[embed.description.index('@')+1:embed.description.index('>')]
-                #try:
-                    #print(f"{self.update_stats(str(player), win=False)}")
-                    #self.update_stats(str(player), win=True)
-                #except:
-                    #response = Embed(title="Error")
-                    #print("error")
-
-    # For messages indicating scheduled challenges
-                    #if embed.title == "Challenge scheduled":
-                        #if embed.description:
-                            #print(embed.description)
-                            # Extract usernames from the message content
-                            #challenge_info = embed.content.split('Challenge between ')[1].split(' scheduled to be completed by ')[0]
-                            #players = [username.strip('@') for username in challenge_info.split(' and ')]
-                            
-                            # Update stats for both players (assuming one won and the other lost)
-                            #print(players)

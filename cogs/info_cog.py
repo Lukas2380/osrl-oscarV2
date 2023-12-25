@@ -212,7 +212,7 @@ class Info_Cog(commands.Cog):
         rolesIntroEmbed = discord.Embed(
             title = 'Assign your roles',
             description=rolesintro,
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         await channel.send(embed=rolesIntroEmbed)
@@ -229,7 +229,7 @@ class Info_Cog(commands.Cog):
         rankEmbed = discord.Embed(
             title="Ranks",
             description="What is the highest rank you have achieved?",
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         #region Rank Buttons
@@ -306,7 +306,7 @@ class Info_Cog(commands.Cog):
         regionEmbed = discord.Embed(
             title = 'Region',
             description= 'What region do you mostly play in?',
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         #region Region Buttons
@@ -354,7 +354,7 @@ class Info_Cog(commands.Cog):
         platformEmbed = discord.Embed(
             title = 'System/Console',
             description= 'What system or console do you play on?',
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         #region Platform Buttons
@@ -401,7 +401,7 @@ class Info_Cog(commands.Cog):
         lfgEmbed = discord.Embed(
             title = 'Looking for friends roles',
             description= 'These roles are for if you want to be notified when others are looking for people to play with.',
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         #region Lfg Buttons
@@ -466,7 +466,7 @@ class Info_Cog(commands.Cog):
         addRolesEmbed = discord.Embed(
             title = 'Additional Roles',
             description= 'These roles are specific interests that we offer in this discord! Choose any that you want to be a part of.',
-            color=self.self.embedColor
+            color=self.embedColor
         )
 
         #region Additional roles Buttons
