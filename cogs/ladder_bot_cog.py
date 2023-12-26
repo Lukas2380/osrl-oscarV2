@@ -46,6 +46,11 @@ class LadderBot_cog(commands.Cog):
             self.stats = data.split('\n')
             self.stats.pop(-1)
 
+        with open('./data/ladder/streaksLeaderboard.txt', 'r+') as file:
+            data = file.read()
+            self.streaksLeaderboard = data.split('\n')
+            self.streaksLeaderboard.pop(-1)
+
     def writeToFile(self, file: str, mylist: list):
         with open(f'./data/ladder/{file}.txt', "w") as file:
             for entry in mylist:
@@ -122,6 +127,28 @@ class LadderBot_cog(commands.Cog):
         else:
             print("Error: Channel not found.")
 
+    def update_streak(self, player: str, win:bool, currentStreak: int):
+        playerInstreaksLeaderboard = False
+        for entry in self.streaksLeaderboard:
+            if player in entry:
+                playerInstreaksLeaderboard = True
+                player, highestLossStreak, highestWinStreak = entry.split(",")
+                if win:
+                    highestWinStreak = str(max(int(highestWinStreak), currentStreak))
+                else:
+                    highestLossStreak = str(max(int(highestLossStreak), abs(currentStreak)))
+
+                self.streaksLeaderboard[self.streaksLeaderboard.index(entry)] = (f'{player},{highestLossStreak},{highestWinStreak}')
+                
+
+        if not playerInstreaksLeaderboard:
+            if win:
+                self.streaksLeaderboard.append(f'{player},0,1')
+            else:
+                self.streaksLeaderboard.append(f'{player},1,0')
+
+        self.writeToFile('streaksLeaderboard', self.streaksLeaderboard)
+
     def update_stats(self, player: str, win: bool):
         playerInStats = False
         for stat in self.stats:
@@ -141,16 +168,20 @@ class LadderBot_cog(commands.Cog):
                     else:
                         streak = int(streak) - 1
 
+                self.update_streak(player, win, streak)
                 self.stats[self.stats.index(stat)] = (f'{player} - {str(wins)} - {str(losses)} - {str(streak)}')
                 break
 
         if not playerInStats:
             if win:
                 self.stats.append(f'{player} - 1 - 0 - 1')
+                self.streaksLeaderboard.append(f'{player},0,1')
             else:
                 self.stats.append(f'{player} - 0 - 1 - -1')
+                self.streaksLeaderboard.append(f'{player},1,0')
 
         self.writeToFile('stats', self.stats)
+        self.writeToFile('streaksLeaderboard', self.streaksLeaderboard)
 
     @app_commands.command(name="ladder", description="Show the current ladder")
     async def ladder(self, interaction):
@@ -195,12 +226,13 @@ class LadderBot_cog(commands.Cog):
         response = Embed(title='Active Challenges ', description=activeChallenges, color=self.blue)
         await interaction.response.send_message(embed=response)
 
-    @app_commands.command(name="stats", description="Show the stats for the 1s ladder")
-    async def stats(self, interaction):
+    @app_commands.command(name="show_stats", description="Show the stats for the 1s ladder")
+    async def show_stats(self, interaction):
+        #todo: finishing ui touch here
         stats = 'No stats found'
 
         if len(self.stats) > 0:
-            stats = ''
+            stats = 'Player | Highest Lossstreak | Highest Winstreak'
 
             for stat in self.stats:
                 player, wins, losses, streak = stat.split(" - ")
@@ -212,6 +244,25 @@ class LadderBot_cog(commands.Cog):
                     await interaction.response.send_message(f'Error while trying to get the username of one of the user: {player}')
 
         response = Embed(title='Ladder Stats: ', description=stats, color=self.blue)
+        await interaction.response.send_message(embed=response)
+        
+    @app_commands.command(name="streaks", description="Shows the highest win and lossstreaks of the ladder")
+    async def streaks(self, interaction):
+        streaksLB = "No streaks found"
+        
+        if len(self.streaksLeaderboard) > 0:
+            streaksLB = ''
+            
+            for entry in self.streaksLeaderboard:
+                player, lossStreak, winStreak = entry.split(',')
+
+                try:
+                    player = interaction.guild.get_member(int(player)).display_name
+                    streaksLB += f'{str(player)} | L: {str(lossStreak)} | W: {str(winStreak)}\n'
+                except:
+                    await interaction.response.send_message(f'Error while trying to get the username of one of the user: {player}')
+        
+        response = Embed(title='Ladder Streaks: ', description=streaksLB, color=self.blue)
         await interaction.response.send_message(embed=response)
 
     @app_commands.command(name="challenge", description="Challenge the player above you")
@@ -266,7 +317,7 @@ class LadderBot_cog(commands.Cog):
             response = Embed(title="Error", description=f'{player.mention} there is no one left to challenge for you!')
         await interaction.response.send_message(embed=response)
 
-    @app_commands.command(name="guardian", description="Challenge a selected guardian of the ladder")
+    @app_commands.command(name="guardian", description="Challenge the guardian above you")
     async def guardian(self, interaction, guardian: discord.User):
         response = Embed(title="Error", description=f'This function is not implemented yet', color=self.red)
         await interaction.response.send_message(embed=response)
@@ -468,7 +519,7 @@ class LadderBot_cog(commands.Cog):
 
         if not foundPlayerInLeaderboard:
             response = Embed(title='Player not found', description=f'Player was not found in the leaderboard')
-        elif alreadyLocked:
+        else:
             response = Embed(title='Player already locked', description=f'The player is already in the locked player list')
 
         await interaction.response.send_message(embed=response)
