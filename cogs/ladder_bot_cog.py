@@ -11,6 +11,10 @@ class LadderBot_cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.load_data()
+        # todo: timer for things like rechallenge or smthing like that
+        # todo: make guardian challenge shield
+        # todo: make commands work for admin only
+        # todo: make log channel for logging instead of echo
 
     red = 0xFF5733
     blue = 0x0CCFFF
@@ -18,11 +22,10 @@ class LadderBot_cog(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         for guild in self.bot.guilds:
-            if guild.id == 1150003077961756706:
-                print(self.bot.guilds)
-                if len(self.stats) == 0:
-                    await self.getoldstats(guild)
-                await self.update_ladder(guild)
+            print(self.bot.guilds)
+            if len(self.stats) == 0:
+                await self.getoldstats(guild)
+            await self.update_ladder(guild)
 
     def load_data(self):
         # Read files and initialize variables
@@ -57,7 +60,9 @@ class LadderBot_cog(commands.Cog):
                 file.write(entry+'\n')
 
     async def update_ladder(self, guild):
-        channel_id = 1176131566741762078  # Todo: change channel id
+        # ! Warning: at about 4000 symbols maybe about 69 players in the ladder, the embed will be maxed out and cant be displayed
+        # ! Since I am using the line numbers as the player position, if you want to send the ladder as two embeds, the "position" will start at 1 again
+        channel_id = 1182411076307009607  # Todo: change channel id
         channel = guild.get_channel(channel_id)
 
         if channel:
@@ -318,8 +323,57 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.send_message(embed=response)
 
     @app_commands.command(name="guardian", description="Challenge the guardian above you")
-    async def guardian(self, interaction, guardian: discord.User):
-        response = Embed(title="Error", description=f'This function is not implemented yet', color=self.red)
+    async def guardian(self, interaction):
+        #todo: maybe make it a shield instead of the swords
+        playerIsInLeaderboard = False
+        playerAlreadyInChallenge = False
+        guardianAlreadyInChallenge = False
+        player = interaction.user
+
+        guardian_positions = [3] + [i for i in range(5, len(self.leaderboard), 5)]
+
+        for leaderboardEntry in self.leaderboard:
+            if str(player.id) in leaderboardEntry:
+                playerIsInLeaderboard = True
+
+                playerRank = self.leaderboard.index(str(player.id))
+                nearest_guardian = next((guardian_pos for guardian_pos in sorted(guardian_positions, reverse=True) if guardian_pos < playerRank), None)
+
+                if nearest_guardian is not None:
+                    guardianId = self.leaderboard[nearest_guardian - 1]
+                    print(guardianId)
+
+                    # Check if anyone is already in a challenge
+                    for activeChallenge in self.activeChallenges:
+                        if str(player.id) in activeChallenge:
+                            playerAlreadyInChallenge = True
+                            # Handle player already in a challenge
+                            break
+                        elif guardianId in activeChallenge:
+                            guardianAlreadyInChallenge = True
+                            # Handle guardian already in a challenge
+                            break
+
+                    if not playerAlreadyInChallenge and not guardianAlreadyInChallenge:
+                        # Schedule the challenge
+                        date = datetime.now() + timedelta(days=7)
+                        date = date.strftime("%x")
+
+                        self.activeChallenges.append(f'{str(player.id)} - {guardianId} - {date}')
+                        self.writeToFile('activeChallenges', self.activeChallenges)
+
+                        response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}')
+
+                        await self.update_ladder(interaction.guild)
+                        break
+
+                else:
+                    response = Embed(title="Error", description=f'{player.mention} there is no guardian above you!', color=self.red)
+                break
+
+        if not playerIsInLeaderboard:
+            response = Embed(title="Error", description=f'User: {player.mention} was not found in the leaderboard')
+
         await interaction.response.send_message(embed=response)
 
     @app_commands.command(name="results", description="Submit the results of a challenge")
@@ -344,8 +398,9 @@ class LadderBot_cog(commands.Cog):
                     response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=self.blue)
                     
                     if playerIndex > otherPlayerIndex:
+                        self.leaderboard.remove(str(player.id))
                         self.leaderboard[winnerIndex] = str(player.id)
-                        self.leaderboard[winnerIndex+1] = otherPlayer
+                        self.leaderboard.insert(winnerIndex+1, otherPlayer)
                     
                     self.update_stats(str(player.id), True)
                     self.update_stats(otherPlayer, False)
@@ -614,8 +669,15 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="test", description="Command")
     async def test(self, interaction):
-        response = Embed(title="Results accepted", description="Congratulations lordlukas__2380! You have won the match!", color=self.blue)
-        await interaction.response.send_message(embed=response)
+        embed = discord.Embed(
+            title="Test Embed",
+            description="This is a test embed with a reaction.",
+            color=discord.Color.blue()
+        )
+        
+        sent_message = await interaction.channel.send(embed=embed)
+        # Add a reaction to the sent message using the emoji's Unicode
+        await sent_message.add_reaction("\U0001F44D")  # Thumbs up emoji
 
     async def getoldstats(self, guild):
         print("...Fetching old stats because the stats file is empty")
