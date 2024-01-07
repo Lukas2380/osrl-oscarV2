@@ -2,6 +2,7 @@ import asyncio
 import random
 import re
 import typing
+import unicodedata
 import discord
 from discord.ext import commands
 from discord import app_commands, Embed
@@ -12,9 +13,10 @@ class LadderBot_cog(commands.Cog):
         self.bot = bot
         self.load_data()
         # todo: timer for things like rechallenge or smthing like that
-        # todo: make guardian challenge shield
+        # todo: make challenged person have shield instead of sword, have challenged guardian have golden shield
         # todo: make commands work for admin only
         # todo: make log channel for logging instead of echo
+        # todo: challenge scheduled embed make blue
 
     red = 0xFF5733
     blue = 0x0CCFFF
@@ -69,8 +71,10 @@ class LadderBot_cog(commands.Cog):
             ladder_table = 'No active challenges'
             active_challenges = 'No active challenges'
             if len(self.leaderboard) > 0:
-                ladder_table = "Rank - Player - Challenge - Wins - Losses - Streak\n"
-                ladder_table += "```\n"
+                ladder_table = ""
+                #ladder_table = "{:^5} - {:<14} {:^2} |{:<2}|{:<2}|{:<2}\n".format("Rank", "Player", "⚔️", "Wins", "Losses", "Streak")
+                #ladder_table += "\n"
+                rank = 0
 
                 # Check if there are any entries in the leaderboard
                 if self.leaderboard:
@@ -80,6 +84,7 @@ class LadderBot_cog(commands.Cog):
                         losses = 0
                         streak = 0
                         swords = ''
+                        rank += 1
                         
                         # Check if the person is in the activeChallenges list
                         for element in self.activeChallenges:
@@ -92,28 +97,37 @@ class LadderBot_cog(commands.Cog):
 
                         try:
                             username = guild.get_member(int(person)).display_name
-                            ladder_table += "- {:<25} |{:<2}| W: {:<3} | L: {:<3} | S: {:<3}\n".format(username, swords, wins, losses, streak)
+                            #username = unicodedata.normalize('NFKC', username)
+                            #username = re.sub(r"[^a-zA-Z0-9]","_",username)
+                            #ladder_table += "{:^3} - {:<14}| W: {:<3} | L: {:<3} | S: {:<3}\n".format(rank, username[:14] + swords, wins, losses, streak)
+                            ladder_table += "{:^3} | W: {:<2} | L: {:<2} | S: {:<2} - {:<14}\n".format(rank, wins, losses, streak, username[:14] + swords)
                         except:
-                            ladder_table += "- {:<25} |{:<2}| W: {:<3} | L: {:<3} | S: {:<3}\n".format(f"no id: {person}", swords, wins, losses, streak)
+                            ladder_table += "{:^3} - {:<17}| W: {:<3} | L: {:<3} | S: {:<3}\n".format(rank, f"no id: {person[:14]}" + swords, wins, losses, streak)
 
-                ladder_table += "```\n"
+                ladder_table += "\n"
 
             # Active Challenges
             if len(self.activeChallenges) > 0:
-                active_challenges = "First Player - Second Player - Date\n"
-                active_challenges += "```\n"
-                
+                #active_challenges = "{:>14} ⚔️ {:<14} - {:<7}\n".format("First Player", "Second Player", "Date")
+                active_challenges = ""
+                nr = 0
+
                 for challenge in self.activeChallenges:
                     firstPlayer, secondPlayer, date = challenge.split(" - ")
+                    nr += 1
 
                     try:
                         firstPlayer = guild.get_member(int(firstPlayer)).display_name
                         secondPlayer = guild.get_member(int(secondPlayer)).display_name
                     except:
                         print(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
-                    active_challenges += "- {:<15} - {:<15} - {:<10}\n".format(firstPlayer, secondPlayer, date)
+                    
+                    if len(firstPlayer+secondPlayer) > 28: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on the phone
+                        firstPlayer = firstPlayer[:14]
+                        secondPlayer = secondPlayer[:14]
+                    active_challenges += "{:^} - {} ⚔️ {} - {:<7}\n".format(nr, firstPlayer, secondPlayer, date)
 
-                active_challenges += "```\n"
+                active_challenges += "\n"
 
             # Find and delete the previous embed
             async for message in channel.history(limit=5):
@@ -123,11 +137,11 @@ class LadderBot_cog(commands.Cog):
                             await message.delete()
                             break
 
-            active_challenges_embed = Embed(title='Active Challenges',description=active_challenges, color=self.blue)
-            await channel.send(embed=active_challenges_embed)
-
-            current_ladder_embed = Embed(title='Current Ladder',description=ladder_table, color=self.blue)
-            await channel.send(embed=current_ladder_embed)
+            message = f">>> ## Active Challenges: \n### **Nr., First Player, Second Player, Date**\n```{active_challenges}``` \n## **Current Ladder:** \n### **Rank - Player - ⚔️ - Wins - Losses - Streak**\n```{ladder_table}```"
+            
+            #message = f">>> ## Active Challenges: \n```{active_challenges}``` \n ## Current Ladder: \n```{ladder_table}```"
+            #message = f"```Active Challenges:\n{active_challenges}\n\nCurrent Ladder:\n{ladder_table}```"
+            await channel.send(message)
 
         else:
             print("Error: Channel not found.")
@@ -668,16 +682,113 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.send_message(embed=response)
 
     @app_commands.command(name="test", description="Command")
-    async def test(self, interaction):
-        embed = discord.Embed(
-            title="Test Embed",
-            description="This is a test embed with a reaction.",
-            color=discord.Color.blue()
-        )
+    async def test(self, ctx):
+        guild = ctx.guild
+        channel_id = 1182411076307009607  # Todo: change channel id
+        channel = guild.get_channel(channel_id)
+
+        if channel:
+            ladder_table = []
+            active_challenges = []
+
+            # Generating ladder table
+            if len(self.leaderboard) > 0:
+                rank = 0
+                for person in self.leaderboard:
+                    wins = 0
+                    losses = 0
+                    streak = 0
+                    swords = ' '
+                    rank += 1
+
+                    for element in self.activeChallenges:
+                        if person in element:
+                            swords = "⚔️"
+
+                    for element in self.stats:
+                        if person in element:
+                            user, wins, losses, streak = element.split(" - ")
+
+                    try:
+                        username = guild.get_member(int(person)).display_name
+                        username = unicodedata.normalize('NFKC', username)
+                        username = re.sub(r"[^a-zA-Z0-9]","_",username)
+                        ladder_table.append([
+                            rank,
+                            f"{username[:20]}{' ' * (20 - len(username))}",
+                            swords,
+                            f"W: {wins}",
+                            f"L: {losses}",
+                            f"S: {streak}"
+                        ])
+                    except:
+                        ladder_table.append([
+                            rank,
+                            f"no id: {person}",
+                            swords,
+                            f"W: {wins}",
+                            f"L: {losses}",
+                            f"S: {streak}"
+                        ])
+
+            # Generating active challenges table
+            if len(self.activeChallenges) > 0:
+                nr = 0
+                for challenge in self.activeChallenges:
+                    firstPlayer, secondPlayer, date = challenge.split(" - ")
+                    nr += 1
+
+                    try:
+                        firstPlayer = guild.get_member(int(firstPlayer)).display_name
+                        secondPlayer = guild.get_member(int(secondPlayer)).display_name
+                    except:
+                        print(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
+
+                    active_challenges.append([
+                        nr,
+                        firstPlayer,
+                        secondPlayer,
+                        date
+                    ])
+
+            # Find and delete the previous embed
+            async for message in channel.history(limit=5):
+                if message.author == guild.me and message.embeds:
+                    for embed in message.embeds:
+                        if embed.title == 'Current Ladder' or embed.title == 'Active Challenges':
+                            await message.delete()
+                            break
+
+            # Convert lists to ASCII tables using generate_text_table function
+            ladder_table_str = self.generate_text_table(["Rank", "Player", "Challenge", "Wins", "Losses", "Streak"], ladder_table)
+            active_challenges_str = self.generate_text_table(["Nr.", "First Player", "Second Player", "Date"], active_challenges)
+
+            message = f">>> ## Active Challenges: \n{active_challenges_str}\n\n ## Current Ladder: \n{ladder_table_str}"
+            print(ladder_table_str)
+            await channel.send(f"```\n{message}\n```")
+        else:
+            print("Error: Channel not found.")
+
+    def generate_text_table(self, header, data):
+
         
-        sent_message = await interaction.channel.send(embed=embed)
-        # Add a reaction to the sent message using the emoji's Unicode
-        await sent_message.add_reaction("\U0001F44D")  # Thumbs up emoji
+        # Calculate column widths
+        col_widths = [max(len(str(row[i])) for row in data + [header]) for i in range(len(header))]
+
+        # Generate the separator line
+        separator = '+'.join('-' * (width + 2) for width in col_widths)
+        separator = f"+{separator}+"
+
+        # Generate header
+        header_row = "| " + " | ".join(f"{header[i]:^{col_widths[i]}}" for i in range(len(header))) + " |"
+
+        # Generate rows
+        data_rows = [f"| {' | '.join(f'{row[i]:^{col_widths[i]}}' for i in range(len(row)))} |" for row in data]
+
+        # Combine all parts to create the table
+        table = "\n".join([separator, header_row, separator] + data_rows + [separator])
+        return table
+
 
     async def getoldstats(self, guild):
         print("...Fetching old stats because the stats file is empty")

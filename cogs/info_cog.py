@@ -212,7 +212,7 @@ class Info_Cog(commands.Cog):
             custom_emoji = discord.utils.get(guild.emojis, name=emoji_name)
             if custom_emoji:
                 try:
-                    await sent_message.add_reaction(str(custom_emoji))
+                    await sent_message.add_reaction(custom_emoji)
                     print(f"Added reaction: {emoji_name}")
                 except Exception as e:
                     print(e)
