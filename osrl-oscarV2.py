@@ -2,6 +2,7 @@ import os
 import asyncio
 import typing
 import discord
+import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import app_commands
@@ -35,6 +36,12 @@ async def on_connect():
     await load_cogs()
 
 @bot.event
+async def on_error(event, *args, **kwargs):
+    error_message = f"An error occurred in {event}: {args} {kwargs}"
+    print(error_message +"\n")
+    traceback.print_exc()
+
+@bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
     try:
@@ -53,6 +60,14 @@ async def load_cogs():
         if filename.endswith('.py'):
             await bot.load_extension(f'cogs.{filename[:-3]}')
             print(f'-- Bot loaded {filename} on startup')
+
+async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        return await interaction.response.send_message(f"You're missing permissions to use that", ephemeral=True)
+    else:
+        raise error
+
+bot.tree.on_error = on_tree_error
 
 async def main():
     await bot.start(TOKEN)

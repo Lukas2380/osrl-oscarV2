@@ -165,7 +165,6 @@ class Info_Cog(commands.Cog):
         await interaction.response.send_message(embed=response)
 
     # ! update:
-        
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         # Fetch the message object
