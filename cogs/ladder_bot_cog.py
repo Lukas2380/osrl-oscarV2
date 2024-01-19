@@ -21,7 +21,6 @@ class LadderBot_cog(commands.Cog):
         #? todo: buttons under the automatic ladder for further information like winstreaks and shit like that
         # todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
-        # todo: make /playerinfo command for getting all the info of one person in the ladder
 
     red = 0xFF5733
     blue = 0x0CCFFF
@@ -283,6 +282,7 @@ class LadderBot_cog(commands.Cog):
             if playerID in lockedPlayer:
                 playerIsLocked = True
                 lockedStatus = "Player is currently locked"
+                playerRank = lockedPlayer.split(" - ")[0]
 
         if not playerIsLocked:
             # Show Position on the ladders
@@ -296,42 +296,42 @@ class LadderBot_cog(commands.Cog):
                 if playerID in active_challenge:
                     active_challenge_info = active_challenge
 
-            # Show Wins/Losses/Current Streak
-            player_stats = None
-            for entry in self.stats:
-                if playerID in entry:
-                    player_stats = entry
+        # Show Wins/Losses/Current Streak
+        player_stats = None
+        for entry in self.stats:
+            if playerID in entry:
+                player_stats = entry
 
-            # Show Highest Win Streak/Highest Loss Streak
-            player_streaks = None
-            for streak in self.streaksLeaderboard:
-                if playerID in streak:
-                    player_streaks = streak
+        # Show Highest Win Streak/Highest Loss Streak
+        player_streaks = None
+        for streak in self.streaksLeaderboard:
+            if playerID in streak:
+                player_streaks = streak
 
-            # Prepare the message
-            message = f">>> ## Stats for {player.mention}:"
+        # Create the embed
+        embed = discord.Embed(title=f"Stats for {player.display_name}", color=self.blue)
+        embed.set_thumbnail(url=player.avatar.url)
 
-            if playerIsLocked:
-                message += f"\nLocked Status: **{lockedStatus}**"
+        if playerIsLocked:
+            embed.add_field(name="Locked Status", value=f"{lockedStatus}", inline=False)
 
-            message += f"\nLadder Position: \n### {playerRank}"
+        embed.add_field(name="Ladder Position", value=f"```{playerRank}```", inline=False)
 
-            if active_challenge_info:
-                message += f"\n**Current Challenge:** {active_challenge_info}"
+        if active_challenge_info:
+            embed.add_field(name="Current Challenge", value=f"{active_challenge_info}", inline=False)
 
-            if player_stats:
-                _, wins, losses, current_streak = player_stats.split(' - ')
-                message += f"\n**Wins:** {wins}"
-                message += f"\n**Losses:**: {losses}"
-                message += f"\n**Current Streak:** {current_streak}"
+        if player_stats:
+            _, wins, losses, current_streak = player_stats.split(' - ')
+            embed.add_field(name="Wins: ", value=f"```{wins}```", inline=True)
+            embed.add_field(name="Losses: ", value=f"```{losses}```", inline=True)
+            embed.add_field(name="Streak: ", value=f"```{current_streak}```", inline=True)
 
-            if player_streaks:
-                _, highest_loss_streak, highest_win_streak = player_streaks.split(',')
-                message += f"\n**Highest Win Streak:** {highest_win_streak}"
-                message += f"\n**Highest Loss Streak:** {highest_loss_streak}"
+        if player_streaks:
+            _, highest_loss_streak, highest_win_streak = player_streaks.split(',')
+            embed.add_field(name="Highest Win Streak", value=f"```{highest_win_streak}```", inline=True)
+            embed.add_field(name="Highest Loss Streak", value=f"```{highest_loss_streak}```", inline=True)
 
-            await interaction.response.send_message(message)
-
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="challenge", description="Challenge the player above you")  
     async def challenge(self, interaction):
@@ -620,7 +620,7 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.send_message(f">>> ## Locked Players: \n### **Date Locked | Rank. Player **\n ```{lines}```")
 
     @app_commands.command(name="lock", description="Lock a player")
-    @app_commands.checks.has_permissions(administrator=True)
+    #@app_commands.checks.has_permissions(administrator=True)
     async def lock(self, interaction, player: discord.User):
         foundPlayerInLeaderboard = False
         alreadyLocked = False
@@ -666,7 +666,7 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.send_message(embed=response)
 
     @app_commands.command(name="unlock", description="Unlock a player")
-    @app_commands.checks.has_permissions(administrator=True)
+    #@app_commands.checks.has_permissions(administrator=True)
     async def unlock(self, interaction, player: discord.User):
 
         response = Embed(title="Error", description=f"Didnt find {player.mention} in the locked players", color=self.blue)
