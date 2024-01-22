@@ -19,7 +19,7 @@ class Info_Cog(commands.Cog):
     ladderrulesChannel = None
     ladderadmininfoChannel = None
     ladderinfoChannel = None
-    rolesChannel = 1182412867962687600
+    rolesChannel = 1193288269450981376
 
     @app_commands.command(name="setchannels", description="Set channels for the info embeds")
     async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
@@ -241,7 +241,7 @@ class Info_Cog(commands.Cog):
         #endregion
 
         #region RankEmbed
-        role_names = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Champ' ,'GC', 'SSL']
+        role_names = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Champ' ,'GC', 'ssl']
         
         # Create an embed
         rankEmbed = discord.Embed(
@@ -255,7 +255,7 @@ class Info_Cog(commands.Cog):
         #endregion
 
         #region RegionEmbed
-        role_names = ['EU', 'SSL']
+        role_names = ['EU', 'ssl']
 
         regionEmbed = discord.Embed(
             title = 'Region',
@@ -308,8 +308,6 @@ class Info_Cog(commands.Cog):
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
         print("Additional Roles embed sent")
         #endregion
-
-
 
 
 async def setup(bot:commands.Bot) -> None:

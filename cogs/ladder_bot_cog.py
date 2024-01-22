@@ -15,12 +15,11 @@ class LadderBot_cog(commands.Cog):
 
         #*Info: the The current ladder will not be displayed after more than 123 people join because of the limit of 2000 symbols per message? So maybe make it multiple messages
         # things to do before launching
-        # todo: cooldown timer for things like rechallenge or something like that
-
         # todo: make log channel for logging instead of echo
         #? todo: buttons under the automatic ladder for further information like winstreaks and shit like that
         # todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
+        # todo: do await interaction.response.defer() basically everywhere
 
     red = 0xFF5733
     blue = 0x0CCFFF
@@ -59,6 +58,11 @@ class LadderBot_cog(commands.Cog):
             data = file.read()
             self.streaksLeaderboard = data.split('\n')
             self.streaksLeaderboard.pop(-1)
+
+        with open('./data/ladder/cooldowns.txt', 'r+') as file:
+            data = file.read()
+            self.cooldowns = data.split('\n')
+            self.cooldowns.pop(-1)
 
     def writeToFile(self, file: str, mylist: list):
         with open(f'./data/ladder/{file}.txt', "w") as file:
@@ -341,6 +345,10 @@ class LadderBot_cog(commands.Cog):
         playerIsFirst = False
         player = interaction.user
 
+        response = self.handleCooldowns(player=player)
+        if response:
+            return await interaction.response.send_message(embed=response)
+
         for leaderboardEntry in self.leaderboard:
             if str(player.id) in leaderboardEntry:
                 playerIsInLeaderboard = True
@@ -370,8 +378,10 @@ class LadderBot_cog(commands.Cog):
                     date = date.strftime("%x")
 
                     self.activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date} - false')
-
                     self.writeToFile('activeChallenges', self.activeChallenges)
+
+                    self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+                    self.writeToFile('cooldowns', self.cooldowns)
 
                     response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=self.blue)
 
@@ -385,12 +395,39 @@ class LadderBot_cog(commands.Cog):
             response = Embed(title="Error", description=f'{player.mention} there is no one left to challenge for you!')
         await interaction.response.send_message(embed=response)
 
+    def handleCooldowns(self, player):
+        for cooldown in self.cooldowns:
+            if str(player.id) in cooldown:
+                time = datetime.strptime(cooldown.split(" - ")[1], "%Y-%m-%d %H:%M:%S")
+                remaining_time = time + timedelta(days=0) - datetime.now()
+
+                if remaining_time < timedelta(0):
+                    self.cooldowns.remove(cooldown)
+                else:
+                    
+                    _, seconds = divmod(remaining_time.seconds, 86400)
+                    days = remaining_time.days
+                    seconds = remaining_time.seconds
+                    hours, seconds = divmod(seconds, 3600)
+                    minutes, seconds = divmod(seconds, 60)
+
+                    response = Embed(
+                        title="Cooldown Reminder",
+                        description=f"Your challenge cooldown has not run out yet, you still have to wait: \n**{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds** before you can challenge again",
+                        color=self.red
+                    )
+                    return response
+
     @app_commands.command(name="challenge-guardian", description="Challenge the guardian above you")
     async def challenge_guardian(self, interaction):
         playerIsInLeaderboard = False
         playerAlreadyInChallenge = False
         guardianAlreadyInChallenge = False        
         player = interaction.user
+
+        response = self.handleCooldowns(player=player)
+        if response:
+            return await interaction.response.send_message(embed=response)
 
         # Restricting amount of guardian-challenges:
         maxGuardianChallenges = 1
@@ -403,7 +440,6 @@ class LadderBot_cog(commands.Cog):
         if guardianChallenges >= maxGuardianChallenges:
             response = Embed(title="Error", description=f"{player.mention}, you can't guardian-challenge! \nThere is already the maximum amount of **{maxGuardianChallenges}** active guardian-challenges.", color=self.red)
             return await interaction.response.send_message(embed=response)
-
 
         guardian_positions = [3] + [i for i in range(5, len(self.leaderboard), 5)]
 
@@ -436,6 +472,9 @@ class LadderBot_cog(commands.Cog):
                         self.activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true')
                         self.writeToFile('activeChallenges', self.activeChallenges)
 
+                        self.cooldowns.append(f'{str(player.id)} - {datetime.now()}')
+                        self.writeToFile('cooldowns', self.cooldowns)
+
                         response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=self.blue)
 
                         await self.update_ladder(interaction.guild)
@@ -454,6 +493,8 @@ class LadderBot_cog(commands.Cog):
     async def results(self, interaction, result: typing.Literal["W", "L"]):
         player = interaction.user
         noActiveChallenge = True
+
+        await interaction.response.defer()
 
         for challenge in self.activeChallenges:
             if str(player.id) in challenge:
@@ -513,7 +554,7 @@ class LadderBot_cog(commands.Cog):
         if noActiveChallenge:
             response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=self.red)
 
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
     def movePlayerinLeaderboard(self, player: str, position: int):
         self.leaderboard.remove(player)
@@ -689,7 +730,7 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="remove-challenge", description="Removes the challenge which has the selected player in it")
     @app_commands.checks.has_permissions(administrator=True)
-    async def removechallenge(self, interaction, player: discord.User):
+    async def removeChallenge(self, interaction, player: discord.User):
         noActiveChallenge = True
 
         for challenge in self.activeChallenges:
@@ -699,12 +740,32 @@ class LadderBot_cog(commands.Cog):
 
                 self.writeToFile('activeChallenges', self.activeChallenges)
 
-                response = Embed(title="Challenge removed", description=f'The challenge with the player: {player.mention} was removed', color=self.blue)
+                response = Embed(title="Challenge removed", description=f'The challenge with the player: {player.mention} has been removed', color=self.blue)
                 await self.update_ladder(interaction.guild)
                 break
 
         if noActiveChallenge:
             response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=self.red)
+
+        await interaction.response.send_message(embed=response)
+
+    @app_commands.command(name="remove-cooldown", description="Removes the players cooldown")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def removeCooldown(self, interaction, player: discord.User):
+        hasnoCooldown = True
+
+        for cooldown in self.cooldowns:
+            if str(player.id) in cooldown:
+                hasnoCooldown = False
+                self.cooldowns.remove(cooldown)
+
+                self.writeToFile('cooldowns', self.cooldowns)
+
+                response = Embed(title="Cooldown removed", description=f'The cooldown for the player: {player.mention} has been removed', color=self.blue)
+                break
+
+        if hasnoCooldown:
+            response = Embed(title="Error", description=f'The player: {player.mention} has no cooldown', color=self.red)
 
         await interaction.response.send_message(embed=response)
 
