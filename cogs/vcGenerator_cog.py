@@ -13,6 +13,14 @@ class VCGeneratorCog(commands.Cog):
     red = 0xFF5733
     blue = 0x0CCFFF
 
+    osrl_Server = 979020400765841462 # This is the OSRL Server ID
+    log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
+
+    async def log(self, output: str):
+        guild = self.bot.get_guild(self.osrl_Server)
+        channel = guild.get_channel(self.log_channel)
+        await channel.send("```" + output + "```")
+
     def load_generators(self):
         with open('./data/vcGenerator/generators.txt', 'r+') as file:
             data = file.read()
@@ -26,18 +34,18 @@ class VCGeneratorCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        print(f"Voice state update event triggered: {member} moved from {before.channel} to {after.channel}")
+        await self.log(f"Voice state update event triggered: {member} moved from {before.channel} to {after.channel}")
         for vc_generator in self.vc_generators:
             vc_channel, generative_name, user_limit = vc_generator.split(',')
 
             if after.channel and str(after.channel.id) == vc_channel:
-                print(f'Someone joined a channel generator')
+                await self.log(f'Someone joined a channel generator')
                 # Create a new voice channel
                 guild = member.guild
                 new_channel = await guild.create_voice_channel(f'{member.display_name}\'s {generative_name}', category = after.channel.category, user_limit = user_limit)
-                print(f'Made a temporary channel')
+                await self.log(f'Made a temporary channel')
                 await member.move_to(new_channel)
-                print(f'Moved the user to the temporary channel')
+                await self.log(f'Moved the user to the temporary channel')
                 self.created_channels.append(new_channel.id)
 
         await asyncio.sleep(3)
@@ -46,7 +54,7 @@ class VCGeneratorCog(commands.Cog):
         for channel_id in self.created_channels:
             channel = member.guild.get_channel(channel_id)
             if channel and len(channel.members) == 0 and channel != after.channel:
-                print(f'Found an empty channel ... deleting it')
+                await self.log(f'Found an empty channel ... deleting it')
                 self.created_channels.remove(channel_id)
                 await channel.delete()
 

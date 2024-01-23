@@ -15,7 +15,6 @@ class LadderBot_cog(commands.Cog):
 
         #*Info: the The current ladder will not be displayed after more than 123 people join because of the limit of 2000 symbols per message? So maybe make it multiple messages
         # things to do before launching
-        # todo: make log channel for logging instead of echo
         #? todo: buttons under the automatic ladder for further information like winstreaks and shit like that
         # todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
@@ -23,14 +22,22 @@ class LadderBot_cog(commands.Cog):
 
     red = 0xFF5733
     blue = 0x0CCFFF
+    osrl_Server = 979020400765841462 # This is the OSRL Server ID
+    log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
 
     @commands.Cog.listener()
     async def on_ready(self):
+        await self.log("Bot is active in these guilds:")
         for guild in self.bot.guilds:
-            print(guild)
+            await self.log(str(guild))
             if len(self.stats) == 0:
                 await self.getoldstats(guild)
             #await self.update_ladder(guild) # todo: reactivate
+
+    async def log(self, output: str):
+        guild = self.bot.get_guild(self.osrl_Server)
+        channel = guild.get_channel(self.log_channel)
+        await channel.send("```" + output + "```")
 
     def load_data(self):
         # Read files and initialize variables
@@ -84,7 +91,7 @@ class LadderBot_cog(commands.Cog):
             await channel.send(await self.get_ladder(guild))
 
         else:
-            print("Error: Channel not found.")
+            await self.log("Error: Channel not found.")
 
     def update_streak(self, player: str, win:bool, currentStreak: int):
         playerInstreaksLeaderboard = False
@@ -193,7 +200,7 @@ class LadderBot_cog(commands.Cog):
                         firstPlayer = guild.get_member(int(firstPlayer)).display_name
                         secondPlayer = guild.get_member(int(secondPlayer)).display_name
                     except:
-                        print(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
+                        await self.log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
                     
                     if len(firstPlayer+secondPlayer) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
                         firstPlayer = firstPlayer[:20]
@@ -227,7 +234,7 @@ class LadderBot_cog(commands.Cog):
                     try:
                         player = interaction.guild.get_member(int(player)).display_name
                     except:
-                        print(f'Error while trying to get the username of one of the user: {player}')
+                        await self.log(f'Error while trying to get the username of one of the user: {player}')
                         break
                     
                     line = "W: {:<3} | L: {:<3} | S: {:<3} | {}\n".format(str(wins), str(losses), str(streak), player[:21])
@@ -260,7 +267,7 @@ class LadderBot_cog(commands.Cog):
                     try:
                         player = interaction.guild.get_member(int(player)).display_name
                     except:
-                        print(f'Error while trying to get the username of one of the user: {player}')
+                        await self.log(f'Error while trying to get the username of one of the user: {player}')
                         #await interaction.response.send_message(f'Error while trying to get the username of one of the user: {player}')
                         break
 
@@ -652,7 +659,7 @@ class LadderBot_cog(commands.Cog):
                 try:
                     username = interaction.guild.get_member(int(name)).display_name
                 except:
-                    print(f'Error while trying to get the username of the user: {name}')
+                    await self.log(f'Error while trying to get the username of the user: {name}')
                     break
 
                 lines += "{:<7} | {:>}. {:<15}\n".format(date, rank, username)
@@ -771,14 +778,14 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="update-txt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
-        print("Updating Leaderboard...")
+        await self.log("Updating Leaderboard...")
         self.load_data()
         
         newLeaderboard = []
         newActiveChallenges = []
         newLockedPlayers = []
 
-        print(interaction.guild)
+        await self.log(interaction.guild)
 
         for person in self.leaderboard:
             user_id = await self.get_user_id(interaction.guild, person)
@@ -818,9 +825,11 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="test", description="Command")
     async def test(self, ctx):
-        guild = ctx.guild
+        guild = None
         channel_id = 1182411076307009607  # Todo: change channel id
         channel = guild.get_channel(channel_id)
+
+        return
 
         if channel:
             ladder_table = []
@@ -877,7 +886,7 @@ class LadderBot_cog(commands.Cog):
                         firstPlayer = guild.get_member(int(firstPlayer)).display_name
                         secondPlayer = guild.get_member(int(secondPlayer)).display_name
                     except:
-                        print(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
+                        await self.log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
 
                     active_challenges.append([
                         nr,
@@ -899,10 +908,10 @@ class LadderBot_cog(commands.Cog):
             active_challenges_str = self.generate_text_table(["Nr.", "First Player", "Second Player", "Date"], active_challenges)
 
             message = f">>> ## Active Challenges: \n{active_challenges_str}\n\n ## Current Ladder: \n{ladder_table_str}"
-            print(ladder_table_str)
+            await self.log(ladder_table_str)
             await channel.send(f"```\n{message}\n```")
         else:
-            print("Error: Channel not found.")
+            await self.log("Error: Channel not found.")
 
     def generate_text_table(self, header, data):
 
@@ -925,7 +934,7 @@ class LadderBot_cog(commands.Cog):
         return table
 
     async def getoldstats(self, guild):
-        print("...Fetching old stats because the stats file is empty")
+        await self.log("...Fetching old stats because the stats file is empty")
         channel_id = 1098739590820540506
         channel = self.bot.get_channel(channel_id)
         challenges = []
@@ -956,13 +965,13 @@ class LadderBot_cog(commands.Cog):
                     except:
                         b = second_playerID
 
-                    #print(f"Challenge between {a} and {b}")
+                    #await self.log(f"Challenge between {a} and {b}")
                     #challenges.append(f"{first_playerID},{second_playerID}")
                     challenges.append(f"{first_playerID},{second_playerID}")
 
                 for embed in message.embeds:
                     if embed.title == "Results accepted" and embed.description.startswith('Congratulations'):
-                        #print(embed.description)
+                        #await self.log(embed.description)
                         # Look in the challenges list and give the win and loss to the people in the challenge
                         try:
                             player = await self.get_user_id(guild, embed.description[16: embed.description.index("!")])
@@ -971,7 +980,7 @@ class LadderBot_cog(commands.Cog):
 
                         for challenge in challenges:
                             if player in challenge:
-                                #print(f"{challenge}, won by {player}")
+                                #await self.log(f"{challenge}, won by {player}")
                                 otherplayer = challenge.replace(player, "").replace(",", "")
                                 self.update_stats(str(player), win=True)
                                 self.update_stats(str(otherplayer), win=False)
@@ -995,7 +1004,7 @@ class LadderBot_cog(commands.Cog):
                 if user:
                     return str(user.id)  # Found user, return user ID
             except Exception as e:
-                print(f"Exception: {e}")
+                await self.log(f"Exception: {e}")
 
         return person
 

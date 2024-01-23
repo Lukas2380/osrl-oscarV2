@@ -21,6 +21,14 @@ class Info_Cog(commands.Cog):
     ladderinfoChannel = None
     rolesChannel = 1193288269450981376
 
+    osrl_Server = 979020400765841462 # This is the OSRL Server ID
+    log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
+
+    async def log(self, output: str):
+        guild = self.bot.get_guild(self.osrl_Server)
+        channel = guild.get_channel(self.log_channel)
+        await channel.send("```" + output + "```")
+
     @app_commands.command(name="setchannels", description="Set channels for the info embeds")
     async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
         self.rulesChannel = rules.id
@@ -183,9 +191,9 @@ class Info_Cog(commands.Cog):
                 role = discord.utils.get(guild.roles, name=role_name)
                 if role:
                     await member.add_roles(role)
-                    print(f"Assigned role '{role_name}' to {member.display_name}")
+                    await self.log(f"Assigned role '{role_name}' to {member.display_name}")
                 else:
-                    print(f"Role '{role_name}' not found.")
+                    await self.log(f"Role '{role_name}' not found.")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -202,9 +210,9 @@ class Info_Cog(commands.Cog):
 
                 if role:
                     await member.remove_roles(role)
-                    print(f"Removed role '{role_name}' from {member.display_name}")
+                    await self.log(f"Removed role '{role_name}' from {member.display_name}")
                 else:
-                    print(f"Role '{role_name}' not found.")
+                    await self.log(f"Role '{role_name}' not found.")
 
     async def add_custom_reactions(self, sent_message, emoji_names, guild):
         for emoji_name in emoji_names:
@@ -212,11 +220,11 @@ class Info_Cog(commands.Cog):
             if custom_emoji:
                 try:
                     await sent_message.add_reaction(custom_emoji)
-                    print(f"Added reaction: {emoji_name}")
+                    await self.log(f"Added reaction: {emoji_name}")
                 except Exception as e:
-                    print(e)
+                    await self.log(e)
             else:
-                print(f"Custom emoji '{emoji_name}' not found.")
+                await self.log(f"Custom emoji '{emoji_name}' not found.")
 
     @app_commands.command(name="rolesembed", description="roles embed")
     async def rolesembed(self, interaction):
@@ -234,7 +242,7 @@ class Info_Cog(commands.Cog):
         )
 
         await channel.send(embed=rolesIntroEmbed)
-        print("Rolesintro embed sent.")
+        await self.log("Rolesintro embed sent.")
 
         response = discord.Embed(title='Embed Sent')
         await interaction.response.send_message(embed=response)
@@ -251,7 +259,7 @@ class Info_Cog(commands.Cog):
         )
         sent_message = await channel.send(embed=rankEmbed)
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
-        print("Rank embed sent.")
+        await self.log("Rank embed sent.")
         #endregion
 
         #region RegionEmbed
@@ -264,7 +272,7 @@ class Info_Cog(commands.Cog):
         )
         sent_message = await channel.send(embed=regionEmbed)
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
-        print("Region embed sent.")
+        await self.log("Region embed sent.")
         #endregion
 
         #region System/ConsoleEmbed
@@ -278,7 +286,7 @@ class Info_Cog(commands.Cog):
 
         sent_message = await channel.send(embed=platformEmbed)
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
-        print("Platform embed sent")
+        await self.log("Platform embed sent")
         #endregion
 
         #region LfgEmbed
@@ -292,7 +300,7 @@ class Info_Cog(commands.Cog):
 
         sent_message = await channel.send(embed=lfgEmbed)
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
-        print("Lfg embed sent")
+        await self.log("Lfg embed sent")
         #endregion
 
         #region Additional roles Embed
@@ -306,7 +314,7 @@ class Info_Cog(commands.Cog):
 
         sent_message = await channel.send(embed=addRolesEmbed)
         await self.add_custom_reactions(sent_message, role_names, interaction.guild)
-        print("Additional Roles embed sent")
+        await self.log("Additional Roles embed sent")
         #endregion
 
 
