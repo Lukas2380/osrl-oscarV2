@@ -18,21 +18,24 @@ bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 @bot.tree.command(name="load", description="Load a cog")
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+    await interaction.response.defer()
     await bot.load_extension(f'cogs.{extension}')
     await log(f'Bot loaded extension: {extension}')
-    await interaction.response.send_message(f"Bot loaded extension: {extension}")
+    await interaction.followup.send(f"Bot loaded extension: {extension}")
 
 @bot.tree.command(name="unload", description="Unload a cog")
 async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+    await interaction.response.defer()
     await bot.unload_extension(f'cogs.{extension}')
     await log(f'Bot unloaded extension: {extension}')
-    await interaction.response.send_message(f"Bot unloaded extension: {extension}")
+    await interaction.followup.send(f"Bot unloaded extension: {extension}")
 
 @bot.tree.command(name="reload", description="Reload a cog")
 async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+    await interaction.response.defer()
     await bot.reload_extension(f'cogs.{extension}')
     await log(f'Bot reloaded extension: cogs.{extension}')
-    await interaction.response.send_message(f"Bot reloaded extension: {extension}")
+    await interaction.followup.send(f"Bot reloaded extension: {extension}")
 
 #@bot.event
 #async def on_connect(): 
@@ -91,10 +94,7 @@ async def on_tree_error(interaction: discord.Interaction, error: app_commands.Ap
             error_message += traceback.format_exc()
             await log("Error``` \n<@381063088842997763>: \n ``` " + error_message)
     except Exception as e:
-        await log(f"An error occurred while handling a command tree error: {e}")
-    finally:
-        # Raise the error to propagate it further if needed
-        raise error
+        await log("Error``` \n<@381063088842997763>: \n ``` " + f"An error occurred while handling a command tree error: {e}")
 bot.tree.on_error = on_tree_error
 
 async def main():

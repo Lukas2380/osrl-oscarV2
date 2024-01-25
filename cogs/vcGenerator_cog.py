@@ -60,6 +60,7 @@ class VCGeneratorCog(commands.Cog):
 
     @app_commands.command(name="list_vc_generators", description="List VC generators")
     async def list_vc_generators(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         # List all VC generators and their generative names
         vcList = ""
         
@@ -68,11 +69,12 @@ class VCGeneratorCog(commands.Cog):
             vcList += f"<#{vc_id}>; Name: User\'s {generativeName}; User limit: {userLimit}\n"
 
         response = Embed(title='List of VC Generators:', description=vcList, color=self.blue)
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
     @app_commands.command(name="add_vc_generator", description="Add a VC generator")
     @app_commands.describe(vc_channel="The VC channel to add", generative_name="The generative name")
     async def add_vc_generator(self, interaction: discord.Interaction, vc_channel: discord.VoiceChannel, generative_name: str, user_limit: int):
+        await interaction.response.defer()
         alreadyAGenerator = False
         for generator in self.vc_generators:
             if str(vc_channel.id) in generator:
@@ -85,11 +87,12 @@ class VCGeneratorCog(commands.Cog):
 
             response = Embed(title='Generator added', description=f'VC Generator was added: {generative_name}', color=self.blue)
         
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
     @app_commands.command(name="remove_vc_generator", description="Remove a VC generator")
     @app_commands.describe(vc_channel="The VC channel to remove")
     async def remove_vc_generator(self, interaction: discord.Interaction, vc_channel: discord.VoiceChannel):
+        await interaction.response.defer()
         
         response = Embed(title="Error", description=f'This VC channel is not a VC generator.', color=self.red)
         # Remove the VC generator from the dictionary
@@ -101,7 +104,7 @@ class VCGeneratorCog(commands.Cog):
                 response = Embed(title='Generator removed', description=f'VC Generator was removed: <#{str(vc_channel.id)}>', color=self.blue)
                 break
 
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
 
 async def setup(bot):

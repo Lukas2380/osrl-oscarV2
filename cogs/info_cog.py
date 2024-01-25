@@ -31,6 +31,7 @@ class Info_Cog(commands.Cog):
 
     @app_commands.command(name="setchannels", description="Set channels for the info embeds")
     async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
+        await interaction.response.defer()
         self.rulesChannel = rules.id
         self.faqChannel = faq.id
         self.anonrepChannel = anonrep.id
@@ -41,10 +42,11 @@ class Info_Cog(commands.Cog):
         self.ladderinfoChannel = ladderinfo.id
         self.rolesChannel = roles.id
 
-        await interaction.response.send_message("Channels have been set.")
+        await interaction.followup.send("Channels have been set.")
 
     @app_commands.command(name="servrules", description="Resend the rules embed")
     async def servrules(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.rulesChannel)
         if channel:
             with open('./data/info/servrules.txt', 'r') as file:
@@ -59,10 +61,11 @@ class Info_Cog(commands.Cog):
             response = discord.Embed(title='Embed Sent')
         else:
             response = discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command.")
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="servfaq", description="Resend the faq embed")
     async def servfaq(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.faqChannel)
         with open('./data/info/faq.txt', 'r') as file:
             faq = file.read()
@@ -74,10 +77,11 @@ class Info_Cog(commands.Cog):
         faq.set_footer(text=self.footerText)
         await channel.send(embed=faq)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
     @app_commands.command(name="servanonrep", description="Resend the anonrep embed")
     async def servanonrep(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.anonrepChannel)
         with open('./data/info/anonrep.txt', 'r') as file:
             anonrep = file.read()
@@ -89,10 +93,11 @@ class Info_Cog(commands.Cog):
         report.set_footer(text=self.footerText)
         await channel.send(embed=report)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="servdir", description="Resend the servdir embed")
     async def servdir(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.servdirChannel)
         with open('./data/info/welcome.txt', 'r') as file:
             welcome = file.read()
@@ -110,10 +115,11 @@ class Info_Cog(commands.Cog):
         servdirec.set_footer(text=self.footerText)
         await channel.send(embed=servdirec)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="servstaff", description="Resend the server staff embed")
     async def servstaff(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.servstaffChannel)
         with open('./data/info/servstaff.txt', 'r') as file:
             servstaff = file.read()
@@ -125,10 +131,11 @@ class Info_Cog(commands.Cog):
         servstaffembed.set_footer(text=self.footerText)
         await channel.send(embed=servstaffembed)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="ladderrules", description="Resend the ladder rules embed")
     async def ladderrules(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderrulesChannel)
         with open('./data/info/1v1rules.txt', 'r') as file:
             rules = file.read()
@@ -140,10 +147,11 @@ class Info_Cog(commands.Cog):
         servstaffembed.set_footer(text=self.footerText)
         await channel.send(embed=servstaffembed)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="ladderadmininfo", description="Resend the ladder admin info embed")
     async def ladderadmininfo(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderadmininfoChannel)
         with open('./data/info/admininfo.txt', 'r') as file:
             admininfo = file.read()
@@ -155,10 +163,11 @@ class Info_Cog(commands.Cog):
         servstaffembed.set_footer(text=self.footerText)
         await channel.send(embed=servstaffembed)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         
     @app_commands.command(name="ladderinfo", description="Resend the ladder info embed")
     async def ladderinfo(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderinfoChannel)
         with open('./data/info/1v1info.txt', 'r') as file:
             info = file.read()
@@ -170,7 +179,7 @@ class Info_Cog(commands.Cog):
         servstaffembed.set_footer(text=self.footerText)
         await channel.send(embed=servstaffembed)
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
 
     # ! update:
     @commands.Cog.listener()
@@ -228,6 +237,7 @@ class Info_Cog(commands.Cog):
 
     @app_commands.command(name="rolesembed", description="roles embed")
     async def rolesembed(self, interaction):
+        await interaction.response.defer()
         channel = self.bot.get_channel(self.rolesChannel)
         role_names = []
 
@@ -245,7 +255,7 @@ class Info_Cog(commands.Cog):
         await self.log("Rolesintro embed sent.")
 
         response = discord.Embed(title='Embed Sent')
-        await interaction.response.send_message(embed=response)
+        await interaction.followup.send(embed=response)
         #endregion
 
         #region RankEmbed
