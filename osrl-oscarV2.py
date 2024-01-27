@@ -6,15 +6,14 @@ import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import app_commands
+from data.helper_functions import *
 
 # Load environment variables from .env
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
-osrl_Server = 979020400765841462 # This is the OSRL Server ID
-log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
-
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
+set_bot_instance(bot)
 
 @bot.tree.command(name="load", description="Load a cog")
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
@@ -37,25 +36,27 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
     await log(f'Bot reloaded extension: cogs.{extension}')
     await interaction.followup.send(f"Bot reloaded extension: {extension}")
 
-#@bot.event
-#async def on_connect(): 
-    #This: await load_cogs() was here before I moved it to on_ready()
-
 @bot.event
 async def on_error(event, *args, **kwargs):
     try:
         error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
         error_message += traceback.format_exc()
-        await log("Error``` \n<@381063088842997763>: \n ``` " + error_message)
+        await log(error_message, isError = True)
     except Exception as e:
         await log(f"An error occurred while handling a command tree error: {e}")
-
 
 @bot.event
 async def on_ready():
     await clearLogChannel()
     await load_cogs()
     await log(f'Logged in as {bot.user.name}')
+
+    # Print all the bot's permissions in the server
+    guild = bot.get_guild(osrl_Server)
+    bot_permissions = guild.me.guild_permissions
+    permissions_str = ", ".join([perm[0].replace("_", " ").capitalize() for perm in bot_permissions if perm[1]])
+    await log(f"Bot's Permissions in the Server: {permissions_str}")
+
     try:
         await log("...Trying to sync the commands")
         synced = await bot.tree.sync()
@@ -66,11 +67,6 @@ async def on_ready():
     bot.vc_generators = {
         bot.get_channel(1150003078796415055): "`s general VC" #todo:remove this testing thing
     }
-
-async def log(output: str):
-    guild = bot.get_guild(osrl_Server)
-    channel = guild.get_channel(log_channel)
-    await channel.send("```" + output + "```")
 
 async def clearLogChannel():
     guild = bot.get_guild(979020400765841462)
@@ -92,9 +88,9 @@ async def on_tree_error(interaction: discord.Interaction, error: app_commands.Ap
             # Log the error
             error_message = f"An error occurred in command tree: {error}\n\n"
             error_message += traceback.format_exc()
-            await log("Error``` \n<@381063088842997763>: \n ``` " + error_message)
+            await log(error_message, isError = True)
     except Exception as e:
-        await log("Error``` \n<@381063088842997763>: \n ``` " + f"An error occurred while handling a command tree error: {e}")
+        await log(f"An error occurred while handling a command tree error: {e}", isError = True)
 bot.tree.on_error = on_tree_error
 
 async def main():

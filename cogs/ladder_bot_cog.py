@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands, Embed
 from datetime import datetime, timedelta
+from data.helper_functions import *
 
 class LadderBot_cog(commands.Cog):
     def __init__(self, bot):
@@ -27,17 +28,12 @@ class LadderBot_cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.log("Bot is active in these guilds:")
+        await log("Bot is active in these guilds:")
         for guild in self.bot.guilds:
-            await self.log(str(guild))
+            await log(str(guild))
             if len(self.stats) == 0:
                 await self.getoldstats(guild)
             #await self.update_ladder(guild) # todo: reactivate
-
-    async def log(self, output: str):
-        guild = self.bot.get_guild(self.osrl_Server)
-        channel = guild.get_channel(self.log_channel)
-        await channel.send("```" + output + "```")
 
     def load_data(self):
         # Read files and initialize variables
@@ -90,7 +86,7 @@ class LadderBot_cog(commands.Cog):
             await channel.send(await self.get_ladder(guild))
 
         else:
-            await self.log("Error: Channel not found.")
+            await log("Error: Channel not found.", isError=True)
 
     def update_streak(self, player: str, win:bool, currentStreak: int):
         playerInstreaksLeaderboard = False
@@ -200,7 +196,7 @@ class LadderBot_cog(commands.Cog):
                         firstPlayer = guild.get_member(int(firstPlayer)).display_name
                         secondPlayer = guild.get_member(int(secondPlayer)).display_name
                     except:
-                        await self.log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
+                        await log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}', isError=True)
                     
                     if len(firstPlayer+secondPlayer) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
                         firstPlayer = firstPlayer[:20]
@@ -237,7 +233,7 @@ class LadderBot_cog(commands.Cog):
                     try:
                         player = interaction.guild.get_member(int(player)).display_name
                     except:
-                        await self.log(f'Error while trying to get the username of one of the user: {player}')
+                        await log(f'Error while trying to get the username of one of the user: {player}', isError=True)
                         break
                     
                     line = "W: {:<3} | L: {:<3} | S: {:<3} | {}\n".format(str(wins), str(losses), str(streak), player[:21])
@@ -271,7 +267,7 @@ class LadderBot_cog(commands.Cog):
                     try:
                         player = interaction.guild.get_member(int(player)).display_name
                     except:
-                        await self.log(f'Error while trying to get the username of one of the user: {player}')
+                        await log(f'Error while trying to get the username of one of the user: {player}', isError=True)
                         break
 
                     line = "W: {:<3} | L: {:<3} | {}\n".format(str(winStreak), str(lossStreak), player[:30])
@@ -324,7 +320,7 @@ class LadderBot_cog(commands.Cog):
                 player_streaks = streak
 
         # Create the embed
-        embed = discord.Embed(title=f"Stats for {player.display_name}", color=self.blue)
+        embed = discord.Embed(title=f"Stats for {player.display_name}", color=blue)
         embed.set_thumbnail(url=player.avatar.url)
 
         if playerIsLocked:
@@ -377,11 +373,11 @@ class LadderBot_cog(commands.Cog):
                 for activeChallenge in self.activeChallenges:
                     if str(player.id) in activeChallenge:
                         playerAlreadyInChallenge = True
-                        response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=self.red)
+                        response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=red)
                         break
                     elif playerAboveId in activeChallenge:
                         playerAboveAlreadyInChallenge = True
-                        response = Embed(title="Error", description="The player above is already in a challenge", color=self.red)
+                        response = Embed(title="Error", description="The player above is already in a challenge", color=red)
                         break
                 
                 if not playerAlreadyInChallenge and not playerAboveAlreadyInChallenge:
@@ -395,7 +391,7 @@ class LadderBot_cog(commands.Cog):
                     self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
                     self.writeToFile('cooldowns', self.cooldowns)
 
-                    response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=self.blue)
+                    response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
 
                     await self.update_ladder(interaction.guild)
                 break
@@ -426,7 +422,7 @@ class LadderBot_cog(commands.Cog):
                     response = Embed(
                         title="Cooldown Reminder",
                         description=f"Your challenge cooldown has not run out yet, you still have to wait: \n**{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds** before you can challenge again",
-                        color=self.red
+                        color=red
                     )
                     return response
 
@@ -451,7 +447,7 @@ class LadderBot_cog(commands.Cog):
                 guardianChallenges += 1
 
         if guardianChallenges >= maxGuardianChallenges:
-            response = Embed(title="Error", description=f"{player.mention}, you can't guardian-challenge! \nThere is already the maximum amount of **{maxGuardianChallenges}** active guardian-challenges.", color=self.red)
+            response = Embed(title="Error", description=f"{player.mention}, you can't guardian-challenge! \nThere is already the maximum amount of **{maxGuardianChallenges}** active guardian-challenges.", color=red)
             await interaction.followup.send(embed=response)
 
         guardian_positions = [3] + [i for i in range(5, len(self.leaderboard), 5)]
@@ -470,11 +466,11 @@ class LadderBot_cog(commands.Cog):
                     for activeChallenge in self.activeChallenges:
                         if str(player.id) in activeChallenge:
                             playerAlreadyInChallenge = True
-                            response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=self.red)
+                            response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=red)
                             break
                         elif guardianId in activeChallenge:
                             guardianAlreadyInChallenge = True
-                            response = Embed(title="Error", description="The guardian you are trying to challenge is already in a challenge", color=self.red)
+                            response = Embed(title="Error", description="The guardian you are trying to challenge is already in a challenge", color=red)
                             break
 
                     if not playerAlreadyInChallenge and not guardianAlreadyInChallenge:
@@ -488,13 +484,13 @@ class LadderBot_cog(commands.Cog):
                         self.cooldowns.append(f'{str(player.id)} - {datetime.now()}')
                         self.writeToFile('cooldowns', self.cooldowns)
 
-                        response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=self.blue)
+                        response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
 
                         await self.update_ladder(interaction.guild)
                         break
 
                 else:
-                    response = Embed(title="Error", description=f'{player.mention} there is no guardian above you!', color=self.red)
+                    response = Embed(title="Error", description=f'{player.mention} there is no guardian above you!', color=red)
                 break
 
         if not playerIsInLeaderboard:
@@ -528,13 +524,13 @@ class LadderBot_cog(commands.Cog):
 
                 if str(player.id) == challenger:
                     if result == "W":
-                        response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=self.blue)
+                        response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=blue)
                         self.movePlayerinLeaderboard(challenger, self.leaderboard.index(challenged))
                         self.update_stats(challenger, True)
                         self.update_stats(challenged, False)
                         leaderboard_change = f"{challenger_user.mention} was moved above {challenged_user.mention} for winning the challenge."
                     else:  # result == "L"
-                        response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=self.red)
+                        response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=red)
                         if isGuardianchallenge:
                             self.movePlayerinLeaderboard(challenger, self.leaderboard.index(challenger) + 1)
                             leaderboard_change = f"{challenger_user.mention} was moved down one spot for losing the guardian challenge."
@@ -542,14 +538,14 @@ class LadderBot_cog(commands.Cog):
                         self.update_stats(challenged, True)
                 else:  # player is the one being challenged
                     if result == "W":
-                        response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=self.blue)
+                        response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=blue)
                         if isGuardianchallenge:
                             self.movePlayerinLeaderboard(challenger, self.leaderboard.index(challenger) + 1)
                             leaderboard_change = f"{challenger_user.mention} was moved down one spot for losing the guardian challenge."
                         self.update_stats(challenger, False)
                         self.update_stats(challenged, True)
                     else:  # result == "L"
-                        response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=self.red)
+                        response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=red)
                         self.movePlayerinLeaderboard(challenger, self.leaderboard.index(challenged))
                         self.update_stats(challenger, True)
                         self.update_stats(challenged, False)
@@ -565,7 +561,7 @@ class LadderBot_cog(commands.Cog):
                 break
 
         if noActiveChallenge:
-            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=self.red)
+            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=red)
 
         await interaction.followup.send(embed=response)
 
@@ -581,7 +577,7 @@ class LadderBot_cog(commands.Cog):
 
         for leaderboardEntry in self.leaderboard:
             if str(player.id) in leaderboardEntry:
-                response = Embed(title="Cant join the ladder", description=f'{player.mention}, you are already in the ladder', color=self.red)
+                response = Embed(title="Cant join the ladder", description=f'{player.mention}, you are already in the ladder', color=red)
                 alreadyIsInLadder = True
                 break
 
@@ -589,7 +585,7 @@ class LadderBot_cog(commands.Cog):
             self.leaderboard.append(str(player.id))
             self.writeToFile('leaderboard', self.leaderboard)
             
-            response = Embed(title='Player added', description=f'Try not to get wrecked', color=self.blue)
+            response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
             await self.update_ladder(interaction.guild)
 
         await interaction.followup.send(embed=response)
@@ -603,17 +599,17 @@ class LadderBot_cog(commands.Cog):
 
         for leaderboardEntry in self.leaderboard:
             if str(player.id) in leaderboardEntry:
-                response = Embed(title="Cant add player", description=f'{player.mention} is already in the ladder', color=self.red)
+                response = Embed(title="Cant add player", description=f'{player.mention} is already in the ladder', color=red)
                 alreadyIsInLadder = True
                 break
 
         if not alreadyIsInLadder:
             if position > 0:
                 self.leaderboard.insert(position-1,str(player.id))
-                response=Embed(title="Player added", description=f'{player.mention} added in the {position} position', color=self.blue)
+                response=Embed(title="Player added", description=f'{player.mention} added in the {position} position', color=blue)
             elif position == 0:
                 self.leaderboard.append(str(player.id))
-                response=Embed(title="Player added", description=f'{player.mention} added in the last position', color=self.blue)
+                response=Embed(title="Player added", description=f'{player.mention} added in the last position', color=blue)
 
             self.writeToFile('leaderboard', self.leaderboard)
             
@@ -625,7 +621,7 @@ class LadderBot_cog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def remove(self, interaction, player: discord.User):
         await interaction.response.defer()
-        response = Embed(title="Error", description=f'Player {player.mention} not recognized.', color=self.red)
+        response = Embed(title="Error", description=f'Player {player.mention} not recognized.', color=red)
 
         for leaderboardEntry in self.leaderboard:
             if str(player.id) in leaderboardEntry:
@@ -640,7 +636,7 @@ class LadderBot_cog(commands.Cog):
                         break
                 self.writeToFile('activeChallenges', self.activeChallenges)
                 
-                response = Embed(title="Player removed", description=f'Player {player.mention} removed from the ladder', color=self.blue)
+                response = Embed(title="Player removed", description=f'Player {player.mention} removed from the ladder', color=blue)
                 await self.update_ladder(interaction.guild)
                 break
 
@@ -654,7 +650,7 @@ class LadderBot_cog(commands.Cog):
             result = "Heads!"
         else:
             result = "Tails!"
-        response = Embed(title='Result:', description=result, color=self.blue)
+        response = Embed(title='Result:', description=result, color=blue)
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="view-locked", description="View currently locked players")
@@ -670,7 +666,7 @@ class LadderBot_cog(commands.Cog):
                 try:
                     username = interaction.guild.get_member(int(name)).display_name
                 except:
-                    await self.log(f'Error while trying to get the username of the user: {name}')
+                    await log(f'Error while trying to get the username of the user: {name}', isError=True)
                     break
 
                 lines += "{:<7} | {:>}. {:<15}\n".format(date, rank, username)
@@ -714,7 +710,7 @@ class LadderBot_cog(commands.Cog):
                     self.writeToFile('leaderboard', self.leaderboard)
                     self.writeToFile('activeChallenges', self.activeChallenges)
 
-                    response=Embed(title='Player Locked', description=f'Player locked untilf further notice', color=self.blue)
+                    response=Embed(title='Player Locked', description=f'Player locked untilf further notice', color=blue)
                     await self.update_ladder(interaction.guild)
                     break
 
@@ -729,7 +725,7 @@ class LadderBot_cog(commands.Cog):
     #@app_commands.checks.has_permissions(administrator=True)
     async def unlock(self, interaction, player: discord.User):
         await interaction.response.defer()
-        response = Embed(title="Error", description=f"Didnt find {player.mention} in the locked players", color=self.blue)
+        response = Embed(title="Error", description=f"Didnt find {player.mention} in the locked players", color=blue)
         
         for locked_player in self.locked_players:
             if str(player.id) in locked_player:
@@ -741,7 +737,7 @@ class LadderBot_cog(commands.Cog):
                 self.writeToFile('lockedPlayers', self.locked_players)
                 self.writeToFile('leaderboard', self.leaderboard)
 
-                response = Embed(title="Unlocked", description=f"{player.mention} unlocked", color=self.blue)
+                response = Embed(title="Unlocked", description=f"{player.mention} unlocked", color=blue)
                 await self.update_ladder(interaction.guild)
                 break
 
@@ -760,12 +756,12 @@ class LadderBot_cog(commands.Cog):
 
                 self.writeToFile('activeChallenges', self.activeChallenges)
 
-                response = Embed(title="Challenge removed", description=f'The challenge with the player: {player.mention} has been removed', color=self.blue)
+                response = Embed(title="Challenge removed", description=f'The challenge with the player: {player.mention} has been removed', color=blue)
                 await self.update_ladder(interaction.guild)
                 break
 
         if noActiveChallenge:
-            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=self.red)
+            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=red)
 
         await interaction.followup.send(embed=response)
 
@@ -782,25 +778,25 @@ class LadderBot_cog(commands.Cog):
 
                 self.writeToFile('cooldowns', self.cooldowns)
 
-                response = Embed(title="Cooldown removed", description=f'The cooldown for the player: {player.mention} has been removed', color=self.blue)
+                response = Embed(title="Cooldown removed", description=f'The cooldown for the player: {player.mention} has been removed', color=blue)
                 break
 
         if hasnoCooldown:
-            response = Embed(title="Error", description=f'The player: {player.mention} has no cooldown', color=self.red)
+            response = Embed(title="Error", description=f'The player: {player.mention} has no cooldown', color=red)
 
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="update-txt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
         await interaction.response.defer()
-        await self.log("Updating Leaderboard...")
+        await log("Updating Leaderboard...")
         self.load_data()
         
         newLeaderboard = []
         newActiveChallenges = []
         newLockedPlayers = []
 
-        await self.log(interaction.guild)
+        await log(interaction.guild)
 
         for person in self.leaderboard:
             user_id = await self.get_user_id(interaction.guild, person)
@@ -828,133 +824,22 @@ class LadderBot_cog(commands.Cog):
         self.locked_players = newLockedPlayers
 
         await self.update_ladder(interaction.guild)
-        response = Embed(title="Text Files Updated", description="The text files have been updated.", color=self.blue)
+        response = Embed(title="Text Files Updated", description="The text files have been updated.", color=blue)
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="update-ladder", description="Command for manually updating the ladder")
     async def updateladder(self, interaction):
+        await interaction.response.defer()
         self.load_data()
         await self.update_ladder(interaction.guild)
-        response = Embed(title="Ladder Updated", description="The ladder has been updated.", color=self.blue)
+        response = Embed(title="Ladder Updated", description="The ladder has been updated.", color=blue)
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="test", description="Command")
-    async def test(self, ctx):
-        guild = None
-        channel_id = 1182411076307009607  # Todo: change channel id
-        channel = guild.get_channel(channel_id)
-
-        return
-
-        if channel:
-            ladder_table = []
-            active_challenges = []
-
-            # Generating ladder table
-            if len(self.leaderboard) > 0:
-                rank = 0
-                for person in self.leaderboard:
-                    wins = 0
-                    losses = 0
-                    streak = 0
-                    swords = ' '
-                    rank += 1
-
-                    for element in self.activeChallenges:
-                        if person in element:
-                            swords = "⚔️"
-
-                    for element in self.stats:
-                        if person in element:
-                            user, wins, losses, streak = element.split(" - ")
-
-                    try:
-                        username = guild.get_member(int(person)).display_name
-                        username = unicodedata.normalize('NFKC', username)
-                        username = re.sub(r"[^a-zA-Z0-9]","_",username)
-                        ladder_table.append([
-                            rank,
-                            f"{username[:20]}{' ' * (20 - len(username))}",
-                            swords,
-                            f"W: {wins}",
-                            f"L: {losses}",
-                            f"S: {streak}"
-                        ])
-                    except:
-                        ladder_table.append([
-                            rank,
-                            f"no id: {person}",
-                            swords,
-                            f"W: {wins}",
-                            f"L: {losses}",
-                            f"S: {streak}"
-                        ])
-
-            # Generating active challenges table
-            if len(self.activeChallenges) > 0:
-                nr = 0
-                for challenge in self.activeChallenges:
-                    firstPlayer, secondPlayer, date, symbol = challenge.split(" - ")
-                    nr += 1
-
-                    try:
-                        firstPlayer = guild.get_member(int(firstPlayer)).display_name
-                        secondPlayer = guild.get_member(int(secondPlayer)).display_name
-                    except:
-                        await self.log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}')
-
-                    active_challenges.append([
-                        nr,
-                        firstPlayer,
-                        secondPlayer,
-                        date
-                    ])
-
-            # Find and delete the previous embed
-            async for message in channel.history(limit=5):
-                if message.author == guild.me and message.embeds:
-                    for embed in message.embeds:
-                        if embed.title == 'Current Ladder' or embed.title == 'Active Challenges':
-                            await message.delete()
-                            break
-
-            # Convert lists to ASCII tables using generate_text_table function
-            ladder_table_str = self.generate_text_table(["Rank", "Player", "Challenge", "Wins", "Losses", "Streak"], ladder_table)
-            active_challenges_str = self.generate_text_table(["Nr.", "First Player", "Second Player", "Date"], active_challenges)
-
-            message = f">>> ## Active Challenges: \n{active_challenges_str}\n\n ## Current Ladder: \n{ladder_table_str}"
-            await self.log(ladder_table_str)
-            await channel.send(f"```\n{message}\n```")
-        else:
-            await self.log("Error: Channel not found.")
-
-    def generate_text_table(self, header, data):
-
-        
-        # Calculate column widths
-        col_widths = [max(len(str(row[i])) for row in data + [header]) for i in range(len(header))]
-
-        # Generate the separator line
-        separator = '+'.join('-' * (width + 2) for width in col_widths)
-        separator = f"+{separator}+"
-
-        # Generate header
-        header_row = "| " + " | ".join(f"{header[i]:^{col_widths[i]}}" for i in range(len(header))) + " |"
-
-        # Generate rows
-        data_rows = [f"| {' | '.join(f'{row[i]:^{col_widths[i]}}' for i in range(len(row)))} |" for row in data]
-
-        # Combine all parts to create the table
-        table = "\n".join([separator, header_row, separator] + data_rows + [separator])
-        return table
-
     async def getoldstats(self, guild):
-        await self.log("...Fetching old stats because the stats file is empty")
+        await log("...Fetching old stats because the stats file is empty")
         channel_id = 1098739590820540506
         channel = self.bot.get_channel(channel_id)
         challenges = []
-        a = ""
-        b = ""
         
         async for message in channel.history(limit=3500, oldest_first=True):
             if message.author.id == 1099026790829273169:
@@ -971,22 +856,10 @@ class LadderBot_cog(commands.Cog):
                         if first_playerID in challenge or second_playerID in challenge:
                             challenges.remove(challenge)
 
-                    try:
-                        a = guild.get_member(int(first_playerID)).display_name
-                    except:
-                        a = first_playerID
-                    try:
-                        b = guild.get_member(int(second_playerID)).display_name
-                    except:
-                        b = second_playerID
-
-                    #await self.log(f"Challenge between {a} and {b}")
-                    #challenges.append(f"{first_playerID},{second_playerID}")
                     challenges.append(f"{first_playerID},{second_playerID}")
 
                 for embed in message.embeds:
                     if embed.title == "Results accepted" and embed.description.startswith('Congratulations'):
-                        #await self.log(embed.description)
                         # Look in the challenges list and give the win and loss to the people in the challenge
                         try:
                             player = await self.get_user_id(guild, embed.description[16: embed.description.index("!")])
@@ -995,7 +868,6 @@ class LadderBot_cog(commands.Cog):
 
                         for challenge in challenges:
                             if player in challenge:
-                                #await self.log(f"{challenge}, won by {player}")
                                 otherplayer = challenge.replace(player, "").replace(",", "")
                                 self.update_stats(str(player), win=True)
                                 self.update_stats(str(otherplayer), win=False)
@@ -1019,7 +891,7 @@ class LadderBot_cog(commands.Cog):
                 if user:
                     return str(user.id)  # Found user, return user ID
             except Exception as e:
-                await self.log(f"Exception: {e}")
+                await log(f"Exception: {e}")
 
         return person
 
