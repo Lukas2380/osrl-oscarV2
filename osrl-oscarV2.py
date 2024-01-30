@@ -1,11 +1,13 @@
 import os
 import asyncio
+from random import randint
 import typing
 import discord
 import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import app_commands
+import requests
 from data.helper_functions import *
 
 # Load environment variables from .env
@@ -64,9 +66,7 @@ async def on_ready():
     except Exception as e:
         await log("Couldnt load commands")
         
-    bot.vc_generators = {
-        bot.get_channel(1150003078796415055): "`s general VC" #todo:remove this testing thing
-    }
+    bot.vc_generators = {} #bot.get_channel(1150003078796415055): "`s general VC" #todo:remove this testing thing
 
 async def clearLogChannel():
     guild = bot.get_guild(979020400765841462)
@@ -78,6 +78,22 @@ async def load_cogs():
         if filename.endswith('.py'):
             await bot.load_extension(f'cogs.{filename[:-3]}')
             await log(f'-- Bot loaded {filename} on startup')
+
+# Bang insultment corner
+@bot.event
+async def on_message(message):
+    # Check if the message is from the specific user (Lukas)
+    if message.author.id == 381063088842997763 or message.author.id == 954346312097218621:
+        # Check if the message is sent in the specific channel (ID: 1193289041685270539)
+        if message.channel.id == 1193289041685270539:
+            if randint(1, 10) == 1:
+                # Fetch insult from the API
+                insult_api_url = 'https://evilinsult.com/generate_insult.php?lang=en&type=pirate'
+                response = requests.get(insult_api_url)
+                insult = response.text.strip()
+
+                # Reply with the insult
+                await message.channel.send(f"{message.author.mention}, {insult}")
 
 @bot.event
 async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):

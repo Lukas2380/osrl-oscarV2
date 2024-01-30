@@ -17,7 +17,7 @@ class LadderBot_cog(commands.Cog):
         #*Info: the The current ladder will not be displayed after more than 123 people join because of the limit of 2000 symbols per message? So maybe make it multiple messages
         # things to do before launching
         #? todo: buttons under the automatic ladder for further information like winstreaks and shit like that
-        # todo: make /results and /confirm_results command for equilibrium
+        #? todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
 
     red = 0xFF5733
@@ -33,7 +33,7 @@ class LadderBot_cog(commands.Cog):
             await log(str(guild))
             if len(self.stats) == 0:
                 await self.getoldstats(guild)
-            #await self.update_ladder(guild) # todo: reactivate
+            await self.update_ladder(guild)
 
     def load_data(self):
         # Read files and initialize variables
@@ -731,7 +731,7 @@ class LadderBot_cog(commands.Cog):
             if str(player.id) in locked_player:
                 self.locked_players.remove(locked_player)
 
-                rank, playerName, date = locked_player.split(' - ')
+                rank, _, _ = locked_player.split(' - ')
                 self.leaderboard.insert(int(rank)-1, str(player.id))
 
                 self.writeToFile('lockedPlayers', self.locked_players)

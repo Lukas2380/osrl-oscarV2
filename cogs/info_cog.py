@@ -221,6 +221,18 @@ class Info_Cog(commands.Cog):
             await self.add_custom_reactions(sent_message, roles.values(), interaction.guild)
             await log(f"--- {category} embed sent.")
 
+    async def add_custom_reactions(self, sent_message, emoji_names, guild):
+        for emoji_name in emoji_names:
+            custom_emoji = discord.utils.get(guild.emojis, name=emoji_name)
+            if custom_emoji:
+                try:
+                    await sent_message.add_reaction(custom_emoji)
+                    await log(f"Added reaction: {emoji_name}")
+                except Exception as e:
+                    await log(e)
+            else:
+                await log(f"Custom emoji '{emoji_name}' not found.")
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         await self.handle_reaction(payload, add=True)
@@ -250,7 +262,7 @@ class Info_Cog(commands.Cog):
                     # Check if the user is not a bot
                     if not member.bot:
                         # Check which category the emoji belongs to
-                        for category, data in self.roles_config.items():
+                        for _, data in self.roles_config.items():
                             roles = data.get("roles", {})
                             if emoji in roles.values():
                                 # Find the role associated with the emoji
