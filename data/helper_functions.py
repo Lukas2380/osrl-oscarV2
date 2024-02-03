@@ -1,8 +1,10 @@
 red = 0xFF5733
 blue = 0x0CCFFF
+infoEmbedColor = 0x03fc0b
 
-osrl_Server = 979020400765841462
-log_channel = 1199387324904112178
+osrl_Server = 979020400765841462 # This is the OSRL Server ID
+log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
+ladder_channel = 1193288442260488402 # This is the id of the ladder channel in the OSRL Server
 bot_instance = None
 
 def set_bot_instance(bot):

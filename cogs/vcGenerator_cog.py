@@ -5,7 +5,6 @@ import asyncio
 from data.helper_functions import *
 
 class VCGeneratorCog(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
         self.created_channels = []
@@ -32,7 +31,8 @@ class VCGeneratorCog(commands.Cog):
                 await log(f'Someone joined a channel generator')
                 # Create a new voice channel
                 guild = member.guild
-                new_channel = await guild.create_voice_channel(f'{member.display_name}\'s {generative_name}', category = after.channel.category, user_limit = user_limit)
+                generative_name = generative_name.replace("*", member.display_name)
+                new_channel = await guild.create_voice_channel(generative_name, category = after.channel.category, user_limit = user_limit)
                 await log(f'Made a temporary channel')
                 await member.move_to(new_channel)
                 await log(f'Moved the user to the temporary channel')
@@ -62,7 +62,7 @@ class VCGeneratorCog(commands.Cog):
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="add_vc_generator", description="Add a VC generator")
-    @app_commands.describe(vc_channel="The VC channel to add", generative_name="The generative name")
+    @app_commands.describe(vc_channel="The VC channel to add", generative_name="The generative name, Example: 'Coach *`s vc' (The * will automatically be replaced with the users name)")
     async def add_vc_generator(self, interaction: discord.Interaction, vc_channel: discord.VoiceChannel, generative_name: str, user_limit: int):
         await interaction.response.defer()
         alreadyAGenerator = False
@@ -75,7 +75,7 @@ class VCGeneratorCog(commands.Cog):
             self.vc_generators.append(str(f'{str(vc_channel.id)},{generative_name},{str(user_limit)}'))
             await self.save_generators()
 
-            response = Embed(title='Generator added', description=f'VC Generator was added: {generative_name}', color=blue)
+            response = Embed(title='Generator added', description=f'VC Generator was added: <#{str(vc_channel.id)}>', color=blue)
         
         await interaction.followup.send(embed=response)
 

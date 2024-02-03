@@ -19,13 +19,8 @@ class LadderBot_cog(commands.Cog):
         #? todo: buttons under the automatic ladder for further information like winstreaks and shit like that
         #? todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
-
-    red = 0xFF5733
-    blue = 0x0CCFFF
-    osrl_Server = 979020400765841462 # This is the OSRL Server ID
-    log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
-    ladder_channel = 1193288442260488402 # This is the id of the ladder channel in the OSRL Server
-
+        # todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
+        
     @commands.Cog.listener()
     async def on_ready(self):
         await log("Bot is active in these guilds:")
@@ -36,7 +31,7 @@ class LadderBot_cog(commands.Cog):
             await self.update_ladder(guild)
 
     def load_data(self):
-        # Read files and initialize variables
+        # Read files and initialize a list for each one
         with open('./data/ladder/leaderboard.txt','r+') as file:
             data = file.read()
             self.leaderboard = data.split('\n')
@@ -73,7 +68,7 @@ class LadderBot_cog(commands.Cog):
                 file.write(entry+'\n')
 
     async def update_ladder(self, guild):
-        channel = guild.get_channel(self.ladder_channel)
+        channel = guild.get_channel(ladder_channel)
 
         if channel:
             # Find and delete the previous message and remove it
@@ -305,7 +300,21 @@ class LadderBot_cog(commands.Cog):
             active_challenge_info = None
             for active_challenge in self.activeChallenges:
                 if playerID in active_challenge:
-                    active_challenge_info = active_challenge
+                    firstPlayer, secondPlayer, date, symbol  = active_challenge.split(" - ")
+                    firstPlayerPosition = self.leaderboard.index(firstPlayer) + 1
+                    secondPlayerPosition = self.leaderboard.index(secondPlayer) + 1
+
+                    try:
+                        firstPlayer = interaction.guild.get_member(int(firstPlayer)).display_name
+                        secondPlayer = interaction.guild.get_member(int(secondPlayer)).display_name
+                    except:
+                        await log(f'Error while trying to get the username of one of these users: {firstPlayer}/{secondPlayer}', isError=True)
+                    
+                    if len(firstPlayer+secondPlayer) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
+                        firstPlayer = firstPlayer[:20]
+                        secondPlayer = secondPlayer[:20]
+                    
+                    active_challenge_info = "{:^}. {} ⚔️ {}. {}\n".format(firstPlayerPosition, firstPlayer, secondPlayerPosition, secondPlayer)
 
         # Show Wins/Losses/Current Streak
         player_stats = None
@@ -329,7 +338,7 @@ class LadderBot_cog(commands.Cog):
         embed.add_field(name="Ladder Position", value=f"```{playerRank}```", inline=False)
 
         if active_challenge_info:
-            embed.add_field(name="Current Challenge", value=f"{active_challenge_info}", inline=False)
+            embed.add_field(name="Current Challenge", value=f"```{active_challenge_info}```", inline=False)
 
         if player_stats:
             _, wins, losses, current_streak = player_stats.split(' - ')
@@ -355,7 +364,7 @@ class LadderBot_cog(commands.Cog):
 
         response = self.handleCooldowns(player=player)
         if response:
-            await interaction.followup.send(embed=response)
+            return await interaction.followup.send(embed=response)
 
         for leaderboardEntry in self.leaderboard:
             if str(player.id) in leaderboardEntry:
@@ -407,12 +416,11 @@ class LadderBot_cog(commands.Cog):
         for cooldown in self.cooldowns:
             if str(player.id) in cooldown:
                 time = datetime.strptime(cooldown.split(" - ")[1], "%Y-%m-%d %H:%M:%S")
-                remaining_time = time + timedelta(days=0) - datetime.now()
+                remaining_time = time + timedelta(minutes=2) - datetime.now()
 
                 if remaining_time < timedelta(0):
                     self.cooldowns.remove(cooldown)
                 else:
-                    
                     _, seconds = divmod(remaining_time.seconds, 86400)
                     days = remaining_time.days
                     seconds = remaining_time.seconds
@@ -436,7 +444,7 @@ class LadderBot_cog(commands.Cog):
 
         response = self.handleCooldowns(player=player)
         if response:
-            await interaction.followup.send(embed=response)
+            return await interaction.followup.send(embed=response)
 
         # Restricting amount of guardian-challenges:
         maxGuardianChallenges = 1
@@ -481,7 +489,7 @@ class LadderBot_cog(commands.Cog):
                         self.activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true')
                         self.writeToFile('activeChallenges', self.activeChallenges)
 
-                        self.cooldowns.append(f'{str(player.id)} - {datetime.now()}')
+                        self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
                         self.writeToFile('cooldowns', self.cooldowns)
 
                         response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
@@ -653,8 +661,9 @@ class LadderBot_cog(commands.Cog):
         response = Embed(title='Result:', description=result, color=blue)
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="view-locked", description="View currently locked players")
-    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.command(name="view-locked", description="View currently locked players") #todo: default_member_permissions=3
+    #@app_commands.checks.has_permissions(administrator=True)
+    #@app_commands.default_permissions(manage_messages=True)
     async def view_locked(self, interaction):
         await interaction.response.defer()
         lines = ""
@@ -786,6 +795,7 @@ class LadderBot_cog(commands.Cog):
 
         await interaction.followup.send(embed=response)
 
+    # todo: names in files, update ladder automatically?
     @app_commands.command(name="update-txt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
         await interaction.response.defer()

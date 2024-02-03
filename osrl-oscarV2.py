@@ -17,7 +17,8 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
 
-@bot.tree.command(name="load", description="Load a cog")
+@bot.tree.command(name="load", description="Load a cog", )
+@commands.has_permissions(administrator=True)
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await interaction.response.defer()
     await bot.load_extension(f'cogs.{extension}')
@@ -25,6 +26,7 @@ async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGener
     await interaction.followup.send(f"Bot loaded extension: {extension}")
 
 @bot.tree.command(name="unload", description="Unload a cog")
+@commands.has_permissions(administrator=True)
 async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await interaction.response.defer()
     await bot.unload_extension(f'cogs.{extension}')
@@ -32,6 +34,7 @@ async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
     await interaction.followup.send(f"Bot unloaded extension: {extension}")
 
 @bot.tree.command(name="reload", description="Reload a cog")
+@commands.has_permissions(administrator=True)
 async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
     await interaction.response.defer()
     await bot.reload_extension(f'cogs.{extension}')
@@ -66,11 +69,11 @@ async def on_ready():
     except Exception as e:
         await log("Couldnt load commands")
         
-    bot.vc_generators = {} #bot.get_channel(1150003078796415055): "`s general VC" #todo:remove this testing thing
+    bot.vc_generators = {}
 
 async def clearLogChannel():
-    guild = bot.get_guild(979020400765841462)
-    channel = guild.get_channel(1199387324904112178)
+    guild = bot.get_guild(osrl_Server)
+    channel = guild.get_channel(log_channel)
     await channel.purge()
 
 async def load_cogs():
