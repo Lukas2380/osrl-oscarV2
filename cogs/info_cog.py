@@ -293,7 +293,7 @@ class Info_Cog(commands.Cog):
     async def on_raw_reaction_remove(self, payload):
         await self.handle_reaction(payload, add=False)
 
-    async def handle_reaction(self, payload, add=True):
+    async def handle_reaction(self, payload, add=True): 
         guild_id = payload.guild_id
         guild = discord.utils.find(lambda g: g.id == guild_id, self.bot.guilds)
 
@@ -304,7 +304,7 @@ class Info_Cog(commands.Cog):
             if channel and channel_id == self.rolesChannel:
                 message_id = payload.message_id
                 message = await channel.fetch_message(message_id)
-
+                
                 # Check if the reaction is added/removed from a message sent by your bot
                 if message.author.id == self.bot.user.id:
                     # Handle the reaction based on the emoji

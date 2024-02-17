@@ -17,6 +17,8 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
 
+#! todo: https://www.reddit.com/r/discordapp/comments/11qy3s8/how_do_i_stop_people_from_adding_reactions_to_a/ tell catharticcup to do that on the roleselect channel 
+
 @bot.tree.command(name="load", description="Load a cog", )
 @commands.has_permissions(administrator=True)
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
@@ -54,6 +56,7 @@ async def on_error(event, *args, **kwargs):
 async def on_ready():
     await clearLogChannel()
     await load_cogs()
+    
     await log(f'Logged in as {bot.user.name}')
 
     # Print all the bot's permissions in the server
