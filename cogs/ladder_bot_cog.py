@@ -21,6 +21,7 @@ class LadderBot_cog(commands.Cog):
         #? todo: make /results and /confirm_results command for equilibrium
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
+        # todo: update the info txt files
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
