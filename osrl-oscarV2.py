@@ -89,10 +89,10 @@ async def load_cogs():
 @bot.event
 async def on_message(message):
     # Check if the message is from the specific user (Lukas)
-    if message.author.id == 381063088842997763 or message.author.id == 954346312097218621:
+    if message.author.id == 381063088842997763 or message.author.id == 954346312097218621 or message.author.id == 150724793589563392 or message.author.id == 656032990819909633:
         # Check if the message is sent in the specific channel (ID: 1193289041685270539)
         if message.channel.id == 1193289041685270539:
-            if randint(1, 10) == 1:
+            if randint(1, 4) == 1:
                 # Fetch insult from the API
                 insult_api_url = 'https://evilinsult.com/generate_insult.php?lang=en&type=pirate'
                 response = requests.get(insult_api_url)

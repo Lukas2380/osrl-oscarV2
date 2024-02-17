@@ -22,6 +22,11 @@ class LadderBot_cog(commands.Cog):
         #? todo: maybe show diffrent symbols in /active when guardianchallenge
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
         # todo: update the info txt files
+        # todo: make command for setting the amount of guardian challenges
+        # todo: make command for editing txt files
+        # todo: command for checking the cooldowns
+        # todo: betting?
+        # todo: winloss ratio in playerinfo?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -310,7 +315,7 @@ class LadderBot_cog(commands.Cog):
             active_challenge_info = None
             for active_challenge in self.activeChallenges:
                 if playerID in active_challenge:
-                    firstPlayer, secondPlayer, date, symbol  = active_challenge.split(" - ") # todo: username activechallenges
+                    firstPlayer, secondPlayer, date, isGuardian  = active_challenge.split(" - ") # todo: username activechallenges
                     firstPlayerPosition = self.leaderboard.index(firstPlayer) + 1
                     secondPlayerPosition = self.leaderboard.index(secondPlayer) + 1
 
