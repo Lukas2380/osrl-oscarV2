@@ -77,7 +77,7 @@ async def on_ready():
 async def clearLogChannel():
     guild = bot.get_guild(osrl_Server)
     channel = guild.get_channel(log_channel)
-    await channel.purge()
+    await channel.purge(limit=1000)
 
 async def load_cogs():
     for filename in os.listdir('./cogs'):

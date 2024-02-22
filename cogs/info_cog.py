@@ -232,7 +232,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="rolesembed", description="roles embed")
+    @app_commands.command(name="rolesembed", description="Resend the roles embed")
     async def rolesembed(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.rolesChannel)

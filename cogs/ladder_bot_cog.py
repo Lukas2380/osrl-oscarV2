@@ -25,8 +25,8 @@ class LadderBot_cog(commands.Cog):
         # todo: make command for setting the amount of guardian challenges
         # todo: make command for editing txt files
         # todo: command for checking the cooldowns
-        # todo: betting?
-        # todo: winloss ratio in playerinfo?
+        #? todo: betting?
+        #? todo: winloss ratio in playerinfo?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -98,22 +98,22 @@ class LadderBot_cog(commands.Cog):
             if player in entry:
                 # Update the streak for the player entry
                 playerInstreaksLeaderboard = True
-                player, highestLossStreak, highestWinStreak = entry.split(" - ") # todo: username streaksleaderboard
+                player, highestLossStreak, highestWinStreak = entry.split(" - ") 
                 if win:
                     highestWinStreak = str(max(int(highestWinStreak), currentStreak))
                 else:
                     highestLossStreak = str(max(int(highestLossStreak), abs(currentStreak)))
 
                 # Update the streaks leaderboard
-                self.streaksLeaderboard[self.streaksLeaderboard.index(entry)] = (f'{player} - {highestLossStreak} - {highestWinStreak}') # todo: username streaksleaderboard
+                self.streaksLeaderboard[self.streaksLeaderboard.index(entry)] = (f'{player} - {highestLossStreak} - {highestWinStreak}') 
                 
 
         if not playerInstreaksLeaderboard:
             # Create a new entry for the player
             if win:
-                self.streaksLeaderboard.append(f'{player} - 0 - 1') # todo: username streaksleaderboard
+                self.streaksLeaderboard.append(f'{player} - 0 - 1') 
             else:
-                self.streaksLeaderboard.append(f'{player} - 1 - 0') # todo: username streaksleaderboard
+                self.streaksLeaderboard.append(f'{player} - 1 - 0') 
 
         self.writeToFile('streaksLeaderboard', self.streaksLeaderboard)
 
@@ -124,7 +124,7 @@ class LadderBot_cog(commands.Cog):
             if player in stat:
                 # Update the stats for the player entry
                 playerInStats = True
-                player, wins, losses, streak = stat.split(' - ') # todo: username stats
+                player, wins, losses, streak = stat.split(' - ') 
                 if win:
                     wins = int(wins) + 1
                     if int(streak) < 0:
@@ -141,20 +141,47 @@ class LadderBot_cog(commands.Cog):
                 self.update_streak(player, win, streak)
 
                 # Update the streaks leaderboard 
-                self.stats[self.stats.index(stat)] = (f'{player} - {str(wins)} - {str(losses)} - {str(streak)}') # todo: username stats
+                self.stats[self.stats.index(stat)] = (f'{player} - {str(wins)} - {str(losses)} - {str(streak)}') 
                 break
 
         if not playerInStats:
             # Create a new entry for the player
             if win:
-                self.stats.append(f'{player} - 1 - 0 - 1') # todo: username stats
-                self.streaksLeaderboard.append(f'{player} - 0 - 1') # todo: username streaksleaderboard
+                self.stats.append(f'{player} - 1 - 0 - 1') 
+                self.streaksLeaderboard.append(f'{player} - 0 - 1') 
             else:
-                self.stats.append(f'{player} - 0 - 1 - -1') # todo: username stats
-                self.streaksLeaderboard.append(f'{player} - 1 - 0') # todo: username streaksleaderboard
+                self.stats.append(f'{player} - 0 - 1 - -1') 
+                self.streaksLeaderboard.append(f'{player} - 1 - 0') 
 
         self.writeToFile('stats', self.stats)
         self.writeToFile('streaksLeaderboard', self.streaksLeaderboard)
+
+    @app_commands.command(name="show-cooldowns", description="Show all the cooldowns of the people in the ladder")
+    async def show_cooldowns(self, interaction):
+        try:
+            await interaction.response.defer()
+            output = 'There are no cooldowns'
+
+            if len(self.cooldowns) > 0:
+                output = ""
+
+                for cooldown in self.cooldowns:
+                    player = await self.get_username(interaction.guild, cooldown.split(" - ")[1])
+
+                    time = datetime.strptime(cooldown.split(" - ")[1], "%Y-%m-%d %H:%M:%S")
+                    remaining_time = time + timedelta(days=2) - datetime.now()
+
+                    _, seconds = divmod(remaining_time.seconds, 86400)
+                    days = remaining_time.days
+                    seconds = remaining_time.seconds
+                    hours, seconds = divmod(seconds, 3600)
+                    minutes, seconds = divmod(seconds, 60)
+
+                    output += f"{player}: **{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds**\n"
+            
+            await interaction.followup.send(f">>> ## Current Cooldowns: \n ```{output}```")
+        except Exception as e:
+            log(e, isError=True)
 
     @app_commands.command(name="ladder", description="Show the current ladder")
     async def ladder(self, interaction):
@@ -209,7 +236,7 @@ class LadderBot_cog(commands.Cog):
 
             for challenge in self.activeChallenges:
                     # Get the playernames, playerpositions and usernames of the players
-                    firstPlayer, secondPlayer, _, _  = challenge.split(" - ") # ignore the date and if it is a guardian challenge # todo: username activechallenges
+                    firstPlayer, secondPlayer, _, _  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
                     firstPlayerPosition = self.leaderboard.index(firstPlayer) + 1
                     secondPlayerPosition = self.leaderboard.index(secondPlayer) + 1
                     firstPlayer = await self.get_username(guild, firstPlayer)
@@ -236,7 +263,7 @@ class LadderBot_cog(commands.Cog):
         if len(self.stats) > 0:
             stats = ""
             for stat in self.stats:
-                player, wins, losses, streak = stat.split(" - ") # todo: username stats
+                player, wins, losses, streak = stat.split(" - ") 
 
                 # Only get the stats if the player is on the leaderboard
                 try:
@@ -269,7 +296,7 @@ class LadderBot_cog(commands.Cog):
         if len(self.streaksLeaderboard) > 0:
             streaksLB = ''
             for entry in self.streaksLeaderboard:
-                player, lossStreak, winStreak = entry.split(' - ') # todo: username streaksleaderboard
+                player, lossStreak, winStreak = entry.split(' - ') 
 
                 try:
                     playerindex = self.leaderboard.index(player) + 1 #plus one because python says if 0 equals false
@@ -315,7 +342,7 @@ class LadderBot_cog(commands.Cog):
             active_challenge_info = None
             for active_challenge in self.activeChallenges:
                 if playerID in active_challenge:
-                    firstPlayer, secondPlayer, date, isGuardian  = active_challenge.split(" - ") # todo: username activechallenges
+                    firstPlayer, secondPlayer, date, isGuardian  = active_challenge.split(" - ") 
                     firstPlayerPosition = self.leaderboard.index(firstPlayer) + 1
                     secondPlayerPosition = self.leaderboard.index(secondPlayer) + 1
 
@@ -354,13 +381,13 @@ class LadderBot_cog(commands.Cog):
             embed.add_field(name="Current Challenge", value=f"```{active_challenge_info}```", inline=False)
 
         if player_stats:
-            _, wins, losses, current_streak = player_stats.split(' - ') # todo: username stats 
+            _, wins, losses, current_streak = player_stats.split(' - ')  
             embed.add_field(name="Wins: ", value=f"```{wins}```", inline=True)
             embed.add_field(name="Losses: ", value=f"```{losses}```", inline=True)
             embed.add_field(name="Streak: ", value=f"```{current_streak}```", inline=True)
 
         if player_streaks:
-            _, highest_loss_streak, highest_win_streak = player_streaks.split(' - ') # todo: username streaksleaderboard
+            _, highest_loss_streak, highest_win_streak = player_streaks.split(' - ') 
             embed.add_field(name="Highest Win Streak", value=f"```{highest_win_streak}```", inline=True)
             embed.add_field(name="Highest Loss Streak", value=f"```{highest_loss_streak}```", inline=True)
 
@@ -410,10 +437,10 @@ class LadderBot_cog(commands.Cog):
                     date = datetime.now() + timedelta(days=7)
                     date = date.strftime("%x")
                     
-                    self.activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date} - false') # todo: username activechallenges
+                    self.activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date} - false') 
                     self.writeToFile('activeChallenges', self.activeChallenges)
                     
-                    self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') # todo: username cooldowns
+                    self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
                     self.writeToFile('cooldowns', self.cooldowns)
 
                     response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
@@ -510,10 +537,10 @@ class LadderBot_cog(commands.Cog):
                         date = datetime.now() + timedelta(days=7)
                         date = date.strftime("%x")
 
-                        self.activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true') # todo: username activechallenges
+                        self.activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true') 
                         self.writeToFile('activeChallenges', self.activeChallenges)
 
-                        self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') # todo: username activechallenges
+                        self.cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
                         self.writeToFile('cooldowns', self.cooldowns)
 
                         response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
@@ -600,7 +627,7 @@ class LadderBot_cog(commands.Cog):
     def movePlayerinLeaderboard(self, player: str, position: int):
         # This is being called everytime there is a change in the leaderboard
         self.leaderboard.remove(player)
-        self.leaderboard.insert(position, player) # todo: username leaderboard
+        self.leaderboard.insert(position, player) 
 
     @app_commands.command(name="join", description="Join the ladder!")
     async def join(self, interaction):
@@ -617,7 +644,7 @@ class LadderBot_cog(commands.Cog):
 
         if not alreadyIsInLadder:
             # Add player to the leaderboard
-            self.leaderboard.append(str(player.id)) # todo: username leaderboard
+            self.leaderboard.append(str(player.id)) 
             self.writeToFile('leaderboard', self.leaderboard)
             
             response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
@@ -641,10 +668,10 @@ class LadderBot_cog(commands.Cog):
         # Add the player at the desired position
         if not alreadyIsInLadder:
             if position > 0:
-                self.leaderboard.insert(position-1,str(player.id)) # todo: username leaderboard
+                self.leaderboard.insert(position-1,str(player.id)) 
                 response=Embed(title="Player added", description=f'{player.mention} added in the {position} position', color=blue)
             elif position == 0:
-                self.leaderboard.append(str(player.id)) # todo: username leaderboard
+                self.leaderboard.append(str(player.id)) 
                 response=Embed(title="Player added", description=f'{player.mention} added in the last position', color=blue)
 
             self.writeToFile('leaderboard', self.leaderboard)
@@ -701,7 +728,7 @@ class LadderBot_cog(commands.Cog):
         # Go through all the locked players and output them
         if self.locked_players:
             for locked_player in self.locked_players:
-                rank, playerId, date = locked_player.split(' - ') # todo: username lockedplayers
+                rank, playerId, date = locked_player.split(' - ') 
                 username = await self.get_username(interaction.guild, playerId)
                 lines += "{:<7} | {:>}. {:<15}\n".format(date, rank, username)
         else:
@@ -738,7 +765,7 @@ class LadderBot_cog(commands.Cog):
                             self.leaderboard.pop(leaderboardIndex)
 
                             date = datetime.now().strftime("%x")
-                            self.locked_players.append(f'{leaderboardIndex+1} - {player.id} - {date}') # todo: username lockedplayers
+                            self.locked_players.append(f'{leaderboardIndex+1} - {player.id} - {date}') 
 
                     self.writeToFile('lockedPlayers', self.locked_players)
                     self.writeToFile('leaderboard', self.leaderboard)
@@ -767,8 +794,8 @@ class LadderBot_cog(commands.Cog):
                 self.locked_players.remove(locked_player)
 
                 # Insert them into the leaderboard
-                rank, _, _ = locked_player.split(' - ') # todo: username lockedplayers
-                self.leaderboard.insert(int(rank)-1, str(player.id)) # todo: username leaderboard
+                rank, _, _ = locked_player.split(' - ') 
+                self.leaderboard.insert(int(rank)-1, str(player.id)) 
 
                 self.writeToFile('lockedPlayers', self.locked_players)
                 self.writeToFile('leaderboard', self.leaderboard)
@@ -823,7 +850,6 @@ class LadderBot_cog(commands.Cog):
 
         await interaction.followup.send(embed=response)
 
-    # todo: names in files, update ladder automatically?
     @app_commands.command(name="update-txt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
         # This goes through all the txt files and tries to change the usernames to user ids
@@ -839,25 +865,25 @@ class LadderBot_cog(commands.Cog):
 
         for person in self.leaderboard:
             user_id = await self.get_user_id(interaction.guild, person)
-            newLeaderboard.append(user_id) # todo: username leaderboard
+            newLeaderboard.append(user_id) 
 
         self.writeToFile("leaderboard", newLeaderboard)
         self.leaderboard = newLeaderboard
 
         for challenge in self.activeChallenges:
-            firstPlayer, secondPlayer, date, _ = challenge.split(" - ") # todo: username activechallenges
+            firstPlayer, secondPlayer, date, _ = challenge.split(" - ") 
 
             firstPlayerID = await self.get_user_id(interaction.guild, firstPlayer)
             secondPlayerID = await self.get_user_id(interaction.guild, secondPlayer)
-            newActiveChallenges.append(f"{firstPlayerID} - {secondPlayerID} - {date}") # todo: username activechallenges
+            newActiveChallenges.append(f"{firstPlayerID} - {secondPlayerID} - {date}") 
 
         self.writeToFile("activeChallenges", newActiveChallenges)
         self.activeChallenges = newActiveChallenges
 
         for locked_player in self.locked_players:
-            rank, username, date = locked_player.split(' - ') # todo: username lockedplayers
+            rank, username, date = locked_player.split(' - ') 
             user_id = await self.get_user_id(interaction.guild, username)
-            newLockedPlayers.append(f"{rank} - {user_id} - {date}") # todo: username lockedplayers
+            newLockedPlayers.append(f"{rank} - {user_id} - {date}") 
 
         self.writeToFile("lockedPlayers", newLockedPlayers)
         self.locked_players = newLockedPlayers

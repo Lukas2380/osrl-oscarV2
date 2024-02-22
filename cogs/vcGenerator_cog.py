@@ -23,7 +23,6 @@ class VCGeneratorCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        await log(f"Voice state update event triggered: {member} moved from {before.channel} to {after.channel}")
         for vc_generator in self.vc_generators:
             vc_channel, generative_name, user_limit = vc_generator.split(',')
 
@@ -44,7 +43,7 @@ class VCGeneratorCog(commands.Cog):
         for channel_id in self.created_channels:
             channel = member.guild.get_channel(channel_id)
             if channel and len(channel.members) == 0 and channel != after.channel:
-                await log(f'Found an empty channel ... deleting it')
+                await log(f'Found an empty temporary channel ... deleting it')
                 self.created_channels.remove(channel_id)
                 await channel.delete()
 
