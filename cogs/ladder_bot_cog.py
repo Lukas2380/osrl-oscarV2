@@ -24,9 +24,9 @@ class LadderBot_cog(commands.Cog):
         # todo: update the info txt files
         # todo: make command for setting the amount of guardian challenges
         # todo: make command for editing txt files
-        # todo: command for checking the cooldowns
         #? todo: betting?
         #? todo: winloss ratio in playerinfo?
+        # todo: fix function names
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -158,18 +158,19 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="show-cooldowns", description="Show all the cooldowns of the people in the ladder")
     async def show_cooldowns(self, interaction):
-        try:
-            await interaction.response.defer()
-            output = 'There are no cooldowns'
+        await interaction.response.defer()
 
-            if len(self.cooldowns) > 0:
-                output = ""
+        if len(self.cooldowns) > 0:
+            output = ""
 
-                for cooldown in self.cooldowns:
-                    player = await self.get_username(interaction.guild, cooldown.split(" - ")[1])
-
-                    time = datetime.strptime(cooldown.split(" - ")[1], "%Y-%m-%d %H:%M:%S")
-                    remaining_time = time + timedelta(days=2) - datetime.now()
+            for cooldown in self.cooldowns:
+                time = datetime.strptime(cooldown.split(" - ")[1], "%Y-%m-%d %H:%M:%S")
+                remaining_time = time + timedelta(days=2) - datetime.now()
+                
+                if remaining_time < timedelta(0):
+                    self.cooldowns.remove(cooldown)
+                else:
+                    player = await self.get_username(interaction.guild, cooldown.split(" - ")[0])
 
                     _, seconds = divmod(remaining_time.seconds, 86400)
                     days = remaining_time.days
@@ -177,13 +178,14 @@ class LadderBot_cog(commands.Cog):
                     hours, seconds = divmod(seconds, 3600)
                     minutes, seconds = divmod(seconds, 60)
 
-                    output += f"{player}: **{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds**\n"
-            
-            await interaction.followup.send(f">>> ## Current Cooldowns: \n ```{output}```")
-        except Exception as e:
-            log(e, isError=True)
+                    output += f"{player}: {days} days, {hours} hours, {minutes} minutes, and {seconds} seconds\n"
 
-    @app_commands.command(name="ladder", description="Show the current ladder")
+        if output == "":
+            output = 'There are currently no cooldowns'
+
+        await interaction.followup.send(f">>> ## Current Cooldowns: \n ```{output}```")
+
+    @app_commands.command(name="show-ladder", description="Show the current ladder")
     async def ladder(self, interaction):
         await interaction.response.defer()
         await interaction.followup.send(await self.get_ladder(interaction.guild))
