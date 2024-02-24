@@ -5,22 +5,38 @@ Below are a list of the commands you can submit in the <#1098739590820540506> ch
 	
 Commands:
 
-**-/results (w or l)**
-	This command is how you submit results of matches, the winner or loser may submit the results, w if you are the winner, l if you are the loser.
+1. ** -/join **
+	- This command lets you join the 1v1 ladder. The user gets put at the bottom of the list.
 
-**-/ladder**
-	This command will return with the updated ladder.
+2. ** -/challenge **
+	- This command lets you challenge the person above you in the 1v1 ladder.
 
-**-/challenge (player)**
-	This command places the message author in a challenge with the name stated.
-	
-**-/active**
-	This command lists the active challenges.
+3. ** -/challenge-guardian **
+	- This command lets you challenge the next guardian above you in the 1v1 ladder. The positions of the guardians are: 3,5,10,15... (in steps of 5).
 
-**-/join**
-	This command will add the user that sent the message to the bottom of the ladder.
-    
-**-/cointoss**
-	This command can be used to give a heads or tails result to decide which region the 3rd game will take place in.
+4. ** -/cointoss **
+	- This command can be used to give a heads or tails result to decide which region the 3rd game will take place in.
+
+5. ** -/results ("W" or "L") **
+	- This command lets you submit the results of a challenge or a guardian challenge. Winner or loser may submit the results, "W" if you are the winner, "L" if you are the loser.
+
+6. ** -/show-ladder **
+	- This command prints the current 1v1 Ladder and displays who is currently in a challenge.
+
+7. ** -/show-active **
+	- This command prints the currently active challenges, each line contains the players and the due date of the challenge.
+
+8. ** -/show-cooldowns **
+	- This command prints the rechallenge cooldowns for the players in the 1v1 ladder.
+
+9. ** -/show-stats **
+	- This command prints the stats for the players in the 1v1 ladder.
+
+10. ** -/show-streaks **
+	- This command prints the streaks for the players in the 1v1 ladder.
+
+11. ** -/show-playerinfo (player)**
+	- This command prints all the info from the 1v1 ladder for a selected player. 
+
 
 If you have any questions, problems, or suggestions, message my creater Xulu.

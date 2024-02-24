@@ -12,18 +12,20 @@
 
 **Question:** I'm having an issue with another person, who can I talk to?
 
-**Answer:** Reach out to any staff and we will work with you and the other party to resolve the issue.
+**Answer:** Reach out to any staff and we will work with you and the other party to resolve the issue. If needed please submit a report in <#1099810839508303922> and server admin will review it and take needed steps to resolve the issue.
 
 **Question:** Can I invite my friend to the server?
 
-**Answer:** Short answer: Yes! Long answer: Of course you can. They need to be an actual mature adult, and they need to be a good fit for the community we have here.* Going forward you **MUST CREATE THE INVITE IN THE WELCOME CHANNEL <#1093276180989362196>**
+**Answer:** Short answer: Yes! Long answer: Of course you can. They need to be an actual mature adult, and they need to be a good fit for the community we have here.
 
 **Question:** I have some ideas for the server, who do I talk to?
 
-**Answer:**You can post them in the <#1114002252378681344>channel, or DM one of the following: <@402240952036622336>,<@954346312097218621>,<@612435191259987978>
+**Answer:**You can post them in the <#1114002252378681344>channel.
 
 **Question:** I'm getting a lot of notifications from this server. What can I do?
 
 **Answer:** You can adjust your notification level for individual channels and/or categories. You can also adjust those same levels for the server as whole.
 
-This FAQ list will be updated periodically to better suit server needs. Any suggestions should be placed in <#1114002252378681344>
+This FAQ list will be updated periodically to better suit server needs. The above answers to FAQs are enforeable the same as server rules, please abide by them.
+
+Any suggestions or questions about the above should be placed in <#1114002252378681344>

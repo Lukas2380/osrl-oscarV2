@@ -140,12 +140,12 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.defer()
         
         # Standard output if no stat is found
-        stats = 'No stats found'
+        statsTable = 'No stats found'
         playerindex = None
         sortedStatlist = {}
 
         if len(stats) > 0:
-            stats = ""
+            statsTable = ""
             for stat in stats:
                 player, wins, losses, streak = stat.split(" - ") 
 
@@ -166,9 +166,9 @@ class LadderBot_cog(commands.Cog):
 
         # Sort the list
         for person in dict(sorted(sortedStatlist.items())):
-            stats += sortedStatlist[person]
+            statsTable += sortedStatlist[person]
         
-        await interaction.followup.send(f">>> ## Ladder Stats: \n### **Wins | Losses | Current Streak | Player **\n ```{stats}```")
+        await interaction.followup.send(f">>> ## Ladder Stats: \n### **Wins | Losses | Current Streak | Player **\n ```{statsTable}```")
 
     @app_commands.command(name="show-streaks", description="Shows the highest win and lossstreaks of the ladder")
     async def streaks(self, interaction):

@@ -8,7 +8,7 @@
 
 **5.  Advertisements for personal Twitch/TikTok are allowed in <#1028037376397824071> Any other advertisements for outside leagues, tournaments, or anything else are only allowed with Admin approval.**
 
-**6. Do not @everybody.**
+**6. Do not @everybody. Do not @ more than two ranks at a time. Do not spam @ ranks with multiple messages in a short period of time. See also: Rule 3. In the Casual and Private Match ISO channels you may @ up to 3 ranks at anytime or @ the role for each respective channel. See pinned messages in those channels.**
 
 **7. No offensive names, profile pictures, and/or statuses** You will be asked to change your name, picture, or status if the staff deems them inappropriate. 
 
@@ -24,10 +24,12 @@
 
 **13. Be mindful of which channel you are posting in.** Channel topics are easy to note based on their respsective titles. 
 
+**14. Do not "guest" invite people to VC's that are not server members. Do not invite non-adults to the server, as a guest or otherwise.
+
 **The Admins and Mods will Mute/Kick/Ban per discretion.** If you feel mistreated dm an Admin and we will resolve the issue. All Channels will have pinned messages explaining what they are there for and how everything works. If you don't understand something, feel free to ask! 
 
 **Your presence in this server implies accepting these rules.** Including all further changes. These changes might be done at any time without notice, it is your responsibility to check for them. 
 
 **Now that you have read the rules, please stop by the <#1015761028631511181> channel to assign roles**
 
-Lastly, if you have any issues with anything, feel free to reach out to anyone of the Senior Admin or anyone on the Mod team.
+Lastly, if you have any issues with anything, feel free to reach out to any of the Admin or Mod team.

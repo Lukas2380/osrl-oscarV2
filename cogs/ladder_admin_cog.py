@@ -11,7 +11,6 @@ from data.helper_functions import *
 class LadderAdmin_cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        load_data()
 
     @app_commands.command(name="admin-add", description="Add a player")
     #@app_commands.checks.has_permissions(administrator=True)
@@ -205,7 +204,7 @@ class LadderAdmin_cog(commands.Cog):
         # This goes through all the txt files and tries to change the usernames to user ids
         await interaction.response.defer()
         await log("Updating Leaderboard...")
-        load_data()
+        leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns = load_data()
         
         newLeaderboard = []
         newActiveChallenges = []
@@ -221,11 +220,11 @@ class LadderAdmin_cog(commands.Cog):
         leaderboard = newLeaderboard
 
         for challenge in activeChallenges:
-            firstPlayer, secondPlayer, date, _ = challenge.split(" - ") 
+            firstPlayer, secondPlayer, date = challenge.split(" - ") 
 
             firstPlayerID = await get_user_id(interaction.guild, firstPlayer)
             secondPlayerID = await get_user_id(interaction.guild, secondPlayer)
-            newActiveChallenges.append(f"{firstPlayerID} - {secondPlayerID} - {date}") 
+            newActiveChallenges.append(f"{firstPlayerID} - {secondPlayerID} - {date} - false") 
 
         writeToFile("activeChallenges", newActiveChallenges)
         activeChallenges = newActiveChallenges

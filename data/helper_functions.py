@@ -99,18 +99,17 @@ async def get_activeChallenges(guild):
 
             for challenge in activeChallenges:
                     # Get the playernames, playerpositions and usernames of the players
-                    firstPlayer, secondPlayer, _, _  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
-                    firstPlayerPosition = leaderboard.index(firstPlayer) + 1
-                    secondPlayerPosition = leaderboard.index(secondPlayer) + 1
+                    firstPlayer, secondPlayer, date, _  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
+                    ##firstPlayerPosition = leaderboard.index(firstPlayer) + 1 # !for positioning if wanted
                     firstPlayer = await get_username(guild, firstPlayer)
                     secondPlayer = await get_username(guild, secondPlayer)
                     
-                    if len(firstPlayer+secondPlayer) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
-                        firstPlayer = firstPlayer[:20]
-                        secondPlayer = secondPlayer[:20]
+                    if len(firstPlayer+secondPlayer) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
+                        firstPlayer = firstPlayer[:17]
+                        secondPlayer = secondPlayer[:17]
                     
                     # Write and format the active challenges
-                    active_challenges += "{:^}. {} ⚔️ {}. {}\n".format(firstPlayerPosition, firstPlayer, secondPlayerPosition, secondPlayer)
+                    active_challenges += f"{date}: {firstPlayer}{' '* (17 - len(firstPlayer))} ⚔️ {secondPlayer}\n"
         
         return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```{active_challenges}```")
 
