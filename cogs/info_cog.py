@@ -6,8 +6,6 @@ from discord import app_commands, TextChannel
 from discord.ui import View, Button
 from data.helper_functions import *
 
-#todo: keep reactions at 1 maybe not??
-
 class Info_Cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -62,7 +60,7 @@ class Info_Cog(commands.Cog):
             for channel_name, channel_id in channels_data.items():
                 file.write(f"{channel_name}={channel_id}\n")
 
-    @app_commands.command(name="setchannels", description="Set channels for the info embeds")
+    @app_commands.command(name="info-setchannels", description="Set channels for the info embeds")
     async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
         await interaction.response.defer()
         self.rulesChannel = rules.id
@@ -80,7 +78,7 @@ class Info_Cog(commands.Cog):
 
         await interaction.followup.send("Channels have been set.")
 
-    @app_commands.command(name="servrules", description="Resend the rules embed")
+    @app_commands.command(name="info-servrules", description="Resend the rules embed")
     async def servrules(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.rulesChannel)
@@ -100,7 +98,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="servfaq", description="Resend the faq embed")
+    @app_commands.command(name="info-servfaq", description="Resend the faq embed")
     async def servfaq(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.faqChannel)
@@ -118,7 +116,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="servanonrep", description="Resend the anonrep embed")
+    @app_commands.command(name="info-servanonrep", description="Resend the anonrep embed")
     async def servanonrep(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.anonrepChannel)
@@ -136,7 +134,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="servdir", description="Resend the servdir embed")
+    @app_commands.command(name="info-servdir", description="Resend the servdir embed")
     async def servdir(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.servdirChannel)
@@ -160,7 +158,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="servstaff", description="Resend the server staff embed")
+    @app_commands.command(name="info-servstaff", description="Resend the server staff embed")
     async def servstaff(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.servstaffChannel)
@@ -178,7 +176,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="ladderrules", description="Resend the ladder rules embed")
+    @app_commands.command(name="info-ladderrules", description="Resend the ladder rules embed")
     async def ladderrules(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderrulesChannel)
@@ -196,7 +194,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="ladderadmininfo", description="Resend the ladder admin info embed")
+    @app_commands.command(name="info-ladderadmininfo", description="Resend the ladder admin info embed")
     async def ladderadmininfo(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderadmininfoChannel)
@@ -214,7 +212,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
         
-    @app_commands.command(name="ladderinfo", description="Resend the ladder info embed")
+    @app_commands.command(name="info-ladderinfo", description="Resend the ladder info embed")
     async def ladderinfo(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.ladderinfoChannel)
@@ -232,7 +230,7 @@ class Info_Cog(commands.Cog):
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="rolesembed", description="Resend the roles embed")
+    @app_commands.command(name="info-rolesembed", description="Resend the roles embed")
     async def rolesembed(self, interaction):
         await interaction.response.defer()
         channel = self.bot.get_channel(self.rolesChannel)

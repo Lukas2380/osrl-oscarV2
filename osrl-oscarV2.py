@@ -19,25 +19,25 @@ set_bot_instance(bot)
 
 #! todo: https://www.reddit.com/r/discordapp/comments/11qy3s8/how_do_i_stop_people_from_adding_reactions_to_a/ tell catharticcup to do that on the roleselect channel 
 
-@bot.tree.command(name="load", description="Load a cog", )
+@bot.tree.command(name="cog-load", description="Load a cog", )
 @commands.has_permissions(administrator=True)
-async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
     await interaction.response.defer()
     await bot.load_extension(f'cogs.{extension}')
     await log(f'Bot loaded extension: {extension}')
     await interaction.followup.send(f"Bot loaded extension: {extension}")
 
-@bot.tree.command(name="unload", description="Unload a cog")
+@bot.tree.command(name="cog-unload", description="Unload a cog")
 @commands.has_permissions(administrator=True)
-async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
     await interaction.response.defer()
     await bot.unload_extension(f'cogs.{extension}')
     await log(f'Bot unloaded extension: {extension}')
     await interaction.followup.send(f"Bot unloaded extension: {extension}")
 
-@bot.tree.command(name="reload", description="Reload a cog")
+@bot.tree.command(name="cog-reload", description="Reload a cog")
 @commands.has_permissions(administrator=True)
-async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog"]):
+async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
     await interaction.response.defer()
     await bot.reload_extension(f'cogs.{extension}')
     await log(f'Bot reloaded extension: cogs.{extension}')
@@ -45,12 +45,9 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
 
 @bot.event
 async def on_error(event, *args, **kwargs):
-    try:
-        error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
-        error_message += traceback.format_exc()
-        await log(error_message, isError = True)
-    except Exception as e:
-        await log(f"An error occurred while handling a command tree error: {e}")
+    error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
+    error_message += traceback.format_exc()
+    await log(error_message, isError = True)
 
 @bot.event
 async def on_ready():
