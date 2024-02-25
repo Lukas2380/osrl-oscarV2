@@ -86,7 +86,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
 
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
 
         with open('./data/info/servrules.txt', 'r') as file:
             serv = file.read()
@@ -107,7 +107,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
 
         with open('./data/info/faq.txt', 'r') as file:
             faq = file.read()
@@ -128,7 +128,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/anonrep.txt', 'r') as file:
             anonrep = file.read()
@@ -149,7 +149,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/welcome.txt', 'r') as file:
             welcome = file.read()
@@ -176,7 +176,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/servstaff.txt', 'r') as file:
             servstaff = file.read()
@@ -197,7 +197,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/1v1rules.txt', 'r') as file:
             rules = file.read()
@@ -218,7 +218,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/admininfo.txt', 'r') as file:
             admininfo = file.read()
@@ -239,7 +239,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        await channel.purge(limit=100)
+        await channel.purge(limit=1)
         
         with open('./data/info/1v1info.txt', 'r') as file:
             info = file.read()
@@ -260,7 +260,7 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
 
-        await channel.purge(limit=100)
+        await channel.purge(limit=6)
 
         #region RolesIntroEmbed
         with open('./data/info/rolesintro.txt', 'r') as file:
