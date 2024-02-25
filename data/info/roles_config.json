@@ -38,10 +38,10 @@
         "title": "Looking for friends roles",
         "description": "These roles are for if you want to be notified when others are looking for people to play with.",
         "roles": {
-            "Competetive LFT": "RANKED",
+            "Competitive LFT": "RANKED",
             "Casual LFT": "CASUAL",
             "Private Matches": "PRIVATEMATCH",
-            "Extra Modes": "EXTRAS",
+            "Extra Modes LFT": "EXTRAS",
             "Tournament LFT": "TOURNAMENT",
             "Alternate Games LFT": "ALTERNATEGAMES"
         }
