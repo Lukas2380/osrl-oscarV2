@@ -161,4 +161,3 @@ cython_debug/
 
 # Ignore all txt files
 *.txt
-activeChallenges.txt
