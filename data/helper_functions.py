@@ -109,7 +109,7 @@ async def get_activeChallenges(guild):
                         secondPlayer = secondPlayer[:17]
                     
                     # Write and format the active challenges
-                    active_challenges += f"{date}: {firstPlayer}{' '* (17 - len(firstPlayer))} ⚔️ {secondPlayer}\n"
+                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} ⚔️ {secondPlayer}\n"
         
         return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```{active_challenges}```")
 

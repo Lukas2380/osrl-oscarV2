@@ -86,6 +86,8 @@ class Info_Cog(commands.Cog):
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
 
+        await channel.purge(limit=100)
+
         with open('./data/info/servrules.txt', 'r') as file:
             serv = file.read()
         serv = discord.Embed(
@@ -104,6 +106,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.faqChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+
         with open('./data/info/faq.txt', 'r') as file:
             faq = file.read()
         faq = discord.Embed(
@@ -122,6 +127,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.anonrepChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/anonrep.txt', 'r') as file:
             anonrep = file.read()
         report = discord.Embed(
@@ -140,6 +148,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.servdirChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/welcome.txt', 'r') as file:
             welcome = file.read()
         with open('./data/info/rlconnect.txt', 'r') as file:
@@ -164,6 +175,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.servstaffChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/servstaff.txt', 'r') as file:
             servstaff = file.read()
         servstaffembed = discord.Embed(
@@ -182,6 +196,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.ladderrulesChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/1v1rules.txt', 'r') as file:
             rules = file.read()
         servstaffembed = discord.Embed(
@@ -200,6 +217,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.ladderadmininfoChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/admininfo.txt', 'r') as file:
             admininfo = file.read()
         servstaffembed = discord.Embed(
@@ -218,6 +238,9 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.ladderinfoChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+        
+        await channel.purge(limit=100)
+        
         with open('./data/info/1v1info.txt', 'r') as file:
             info = file.read()
         servstaffembed = discord.Embed(
@@ -236,6 +259,8 @@ class Info_Cog(commands.Cog):
         channel = self.bot.get_channel(self.rolesChannel)
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
+
+        await channel.purge(limit=100)
 
         #region RolesIntroEmbed
         with open('./data/info/rolesintro.txt', 'r') as file:
@@ -277,7 +302,6 @@ class Info_Cog(commands.Cog):
             if custom_emoji:
                 try:
                     await sent_message.add_reaction(custom_emoji)
-                    await log(f"Added reaction: {emoji_name}")
                 except Exception as e:
                     await log(e)
             else:
