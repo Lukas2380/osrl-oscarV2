@@ -18,6 +18,7 @@ class LadderBot_cog(commands.Cog):
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
         # todo: make command for editing txt files
         # todo: betting?
+        # !test?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
