@@ -16,10 +16,8 @@ class LadderBot_cog(commands.Cog):
         #*Info: the The current ladder will not be displayed after more than 123 people join because of the limit of 2000 symbols per message? So maybe make it multiple messages
         # things to do before launching
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
-        # todo: update the info txt files
-        #? todo: make command for setting the amount of guardian challenges
         # todo: make command for editing txt files
-        #? todo: betting?
+        # todo: betting?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -219,7 +217,7 @@ class LadderBot_cog(commands.Cog):
             # Show Position on the ladder
             for ladderEntry in leaderboard:
                 if playerID in ladderEntry:
-                    playerRank = leaderboard.index(ladderEntry)
+                    playerRank = leaderboard.index(ladderEntry) + 1
 
             # Show if person is in an active challenge
             active_challenge_info = None
