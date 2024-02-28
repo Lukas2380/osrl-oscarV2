@@ -1,4 +1,5 @@
 import re
+import socket
 import discord
 
 
@@ -6,9 +7,19 @@ red = 0xFF5733
 blue = 0x0CCFFF
 infoEmbedColor = 0x03fc0b
 
-osrl_Server = 979020400765841462 # This is the OSRL Server ID
-log_channel = 1199387324904112178 # This is the id of the log channel in the OSRL Server
-ladder_channel = 1193288442260488402 # This is the id of the ladder channel in the OSRL Server
+osrl_Server = None # This is the OSRL Server ID
+log_channel = None # This is the id of the log channel in the OSRL Server
+ladder_channel = None # This is the id of the ladder channel in the OSRL Server
+
+if (socket.gethostname() == "Lukas-Desktop"):
+    osrl_Server = 1150003077961756706
+    log_channel = 1212470152000442429
+    ladder_channel = 1212470890172780615
+else:
+    osrl_Server = 979020400765841462
+    log_channel = 1199387324904112178
+    ladder_channel = 1193288442260488402
+
 bot_instance = None
 
 def load_data():
@@ -109,7 +120,7 @@ async def get_activeChallenges(guild):
                         secondPlayer = secondPlayer[:17]
                     
                     # Write and format the active challenges
-                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} ⚔️ {secondPlayer}\n"
+                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} ⚔️ {secondPlayer}{' '* (14 - len(secondPlayer))}\n"
         
         return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```{active_challenges}```")
 
