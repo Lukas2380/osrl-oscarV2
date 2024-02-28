@@ -18,7 +18,6 @@ class LadderBot_cog(commands.Cog):
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
         # todo: make command for editing txt files
         # todo: betting?
-        # !test?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -321,9 +320,6 @@ class LadderBot_cog(commands.Cog):
                     
                     activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date} - false') 
                     writeToFile('activeChallenges', activeChallenges)
-                    
-                    cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
-                    writeToFile('cooldowns', cooldowns)
 
                     response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
 
@@ -422,9 +418,6 @@ class LadderBot_cog(commands.Cog):
                         activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true') 
                         writeToFile('activeChallenges', activeChallenges)
 
-                        cooldowns.append(f'{str(player.id)} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
-                        writeToFile('cooldowns', cooldowns)
-
                         response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
 
                         await update_ladder(interaction.guild)
@@ -463,37 +456,45 @@ class LadderBot_cog(commands.Cog):
 
                 leaderboard_change = "The leaderboard didnt change."
 
+                winner = None
+                loser = None
+
                 if str(player.id) == challenger:
                     if result == "W": # Player is challenger and won
                         response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=blue)
                         self.movePlayerinLeaderboard(challenger, leaderboard.index(challenged))
-                        self.update_stats(challenger, True)
-                        self.update_stats(challenged, False)
+                        winner = challenger
+                        loser = challenged
                         leaderboard_change = f"{challenger_user.mention} was moved above {challenged_user.mention} for winning the challenge."
                     else:  # Player is challenger and lost
                         response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=red)
                         if isGuardianchallenge:
                             self.movePlayerinLeaderboard(challenger, leaderboard.index(challenger) + 1)
                             leaderboard_change = f"{challenger_user.mention} was moved down one spot for losing the guardian challenge."
-                        self.update_stats(challenger, False)
-                        self.update_stats(challenged, True)
+                        winner = challenged
+                        loser = challenger
                 else:
                     if result == "W": # Player is the one being challenged and won
                         response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=blue)
                         if isGuardianchallenge:
                             self.movePlayerinLeaderboard(challenger, leaderboard.index(challenger) + 1)
                             leaderboard_change = f"{challenger_user.mention} was moved down one spot for losing the guardian challenge."
-                        self.update_stats(challenger, False)
-                        self.update_stats(challenged, True)
+                        winner = challenged
+                        loser = challenger
                     else:  # Player is the one being challenged and lost
                         response = Embed(title="Results accepted", description=f'Unlucky {player.mention}, maybe you will win next time', color=red)
                         self.movePlayerinLeaderboard(challenger, leaderboard.index(challenged))
-                        self.update_stats(challenger, True)
-                        self.update_stats(challenged, False)
+                        winner = challenger
+                        loser = challenged
                         leaderboard_change = f"{challenger_user.mention} was moved above {challenged_user.mention} for winning the challenge."
 
-                activeChallenges.remove(challenge)
+                self.update_stats(winner, True)
+                self.update_stats(loser, False)
 
+                activeChallenges.remove(challenge)
+                cooldowns.append(f'{loser} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
+                
+                writeToFile('cooldowns', cooldowns)
                 writeToFile('activeChallenges', activeChallenges)
                 writeToFile('leaderboard', leaderboard)
                 
