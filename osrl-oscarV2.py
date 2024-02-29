@@ -89,7 +89,7 @@ async def on_message(message):
     if message.author.id == 547595456650412052:
         # Check if the message is sent in the specific channel (General 1v1 discussion)
         if message.channel.id == 1063890145897615370:
-            if randint(1, 10) == 1:
+            if False: #randint(1, 10) == 1
                 # Fetch insult from the API
                 insult_api_url = 'https://evilinsult.com/generate_insult.php?lang=en&type=pirate'
                 response = requests.get(insult_api_url)

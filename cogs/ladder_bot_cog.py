@@ -42,8 +42,7 @@ class LadderBot_cog(commands.Cog):
                     highestLossStreak = str(max(int(highestLossStreak), abs(currentStreak)))
 
                 # Update the streaks leaderboard
-                streaksLeaderboard[streaksLeaderboard.index(entry)] = (f'{player} - {highestLossStreak} - {highestWinStreak}') 
-                
+                streaksLeaderboard[streaksLeaderboard.index(entry)] = (f'{player} - {highestLossStreak} - {highestWinStreak}')
 
         if not playerInstreaksLeaderboard:
             # Create a new entry for the player
