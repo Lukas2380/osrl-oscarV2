@@ -46,6 +46,7 @@ class VCGeneratorCog(commands.Cog):
                 await log(f'Found an empty temporary channel ... deleting it')
                 self.created_channels.remove(channel_id)
                 await channel.delete()
+                break
 
     @app_commands.command(name="vcgen-list", description="List VC generators")
     async def list_vc_generators(self, interaction: discord.Interaction):

@@ -82,7 +82,7 @@ async def load_cogs():
             await bot.load_extension(f'cogs.{filename[:-3]}')
             await log(f'-- Bot loaded {filename} on startup')
 
-# Bang insultment corner
+# Bang insultment corner #todo: make it happen to the person who last lost a 1v1 ladder match
 @bot.event
 async def on_message(message):
     # Check if the message is from the specific user (Bang)
