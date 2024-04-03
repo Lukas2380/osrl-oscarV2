@@ -166,7 +166,7 @@ async def get_ladder(guild):
                     username = await get_username(guild, person)
 
                     lst = [3] + [i for i in range(5, len(leaderboard), 5)]
-                    if leaderboard.index(person) in lst:
+                    if (leaderboard.index(person) + 1) in lst:
                         symbol = "[🛡️]"
 
                     ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
