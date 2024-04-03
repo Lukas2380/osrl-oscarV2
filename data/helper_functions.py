@@ -164,9 +164,14 @@ async def get_ladder(guild):
 
                     # Write and format the ladder
                     username = await get_username(guild, person)
+
+                    lst = [3] + [i for i in range(5, len(leaderboard), 5)]
+                    if leaderboard.index(person) in lst:
+                        symbol = "[🛡️]"
+
                     ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
 
-        return(f">>> ## Current Ladder: \n ### **Rank - Player - ⚔️ **\n ```{ladder_table}```")
+        return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```{ladder_table}```")
 
 async def get_user_id(guild, person):
         if person.startswith("<@"):

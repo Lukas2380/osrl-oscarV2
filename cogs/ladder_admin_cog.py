@@ -120,7 +120,7 @@ class LadderAdmin_cog(commands.Cog):
                     writeToFile('leaderboard', leaderboard)
                     writeToFile('activeChallenges', activeChallenges)
 
-                    response=Embed(title='Player Locked', description=f'Player locked untilf further notice', color=blue)
+                    response=Embed(title='Player Locked', description=f'Player locked until further notice', color=blue)
                     await update_ladder(interaction.guild)
                     break
 
