@@ -51,7 +51,7 @@ async def on_error(event, *args, **kwargs):
 
 @bot.event
 async def on_ready():
-    await clearLogChannel()
+    #await clearLogChannel()
     await load_cogs()
     
     await log(f'Logged in as {bot.user.name}')

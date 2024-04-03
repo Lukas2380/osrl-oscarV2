@@ -54,9 +54,19 @@ def load_data():
         cooldowns = data.split('\n')
         cooldowns.pop(-1)
 
-    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns
+    with open('./data/ladder/bets.txt', 'r+') as file:
+        data = file.read()
+        bets = data.split('\n')
+        bets.pop(-1)
 
-leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns = load_data()
+    with open('./data/ladder/wallets.txt', 'r+') as file:
+        data = file.read()
+        wallets = data.split('\n')
+        wallets.pop(-1)
+
+    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets
+
+leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets = load_data()
 
 def set_bot_instance(bot):
     global bot_instance

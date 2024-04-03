@@ -385,8 +385,8 @@ class LadderBot_cog(commands.Cog):
             await interaction.followup.send(embed=response)
 
         # Set the guardianpositions to 3, and then in steps of five so 5,10... and so on
-        #guardian_positions = [3] + [i for i in range(5, len(leaderboard), 5)]
-        guardian_positions = [i for i in range(10, len(leaderboard), 5)] # 3,5 are not guardians anymore
+        guardian_positions = [3] + [i for i in range(5, len(leaderboard), 5)]
+        #guardian_positions = [i for i in range(10, len(leaderboard), 5)] # 3,5 are not guardians anymore
 
         for leaderboardEntry in leaderboard:
             if str(player.id) in leaderboardEntry:
