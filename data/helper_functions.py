@@ -146,7 +146,7 @@ async def get_ladder(guild):
 
                 for person in leaderboard:
                     symbol = ''
-                    guardian = ""
+                    #guardian = ""
                     rank += 1
 
                     # Check if the person is in the activeChallenges list
@@ -166,11 +166,11 @@ async def get_ladder(guild):
                     # Write and format the ladder
                     username = await get_username(guild, person)
 
-                    lst = [3] + [i for i in range(5, len(leaderboard), 5)]
-                    if (leaderboard.index(person) + 1) in lst:
-                        guardian = "🛡️"
+                    #lst = [3] + [i for i in range(5, len(leaderboard), 5)]
+                    #if (leaderboard.index(person) + 1) in lst:
+                        #guardian = "🛡️"
 
-                    ladder_table += "{:>}. {} {:<} {}\n".format(rank, symbol, username, guardian)
+                    ladder_table += "{:>}. {} {:<} {}\n".format(rank, symbol, username)
 
         return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```{ladder_table}```")
 
