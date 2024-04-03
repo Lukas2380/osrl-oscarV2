@@ -170,7 +170,7 @@ async def get_ladder(guild):
                     #if (leaderboard.index(person) + 1) in lst:
                         #guardian = "🛡️"
 
-                    ladder_table += "{:>}. {} {:<} {}\n".format(rank, symbol, username)
+                    ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
 
         return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```{ladder_table}```")
 
