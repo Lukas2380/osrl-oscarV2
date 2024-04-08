@@ -21,7 +21,7 @@ set_bot_instance(bot)
 
 @bot.tree.command(name="cog-load", description="Load a cog", )
 @commands.has_permissions(administrator=True)
-async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
+async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
     await bot.load_extension(f'cogs.{extension}')
     await log(f'Bot loaded extension: {extension}')
@@ -29,7 +29,7 @@ async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGener
 
 @bot.tree.command(name="cog-unload", description="Unload a cog")
 @commands.has_permissions(administrator=True)
-async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
+async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
     await bot.unload_extension(f'cogs.{extension}')
     await log(f'Bot unloaded extension: {extension}')
@@ -37,7 +37,7 @@ async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
 
 @bot.tree.command(name="cog-reload", description="Reload a cog")
 @commands.has_permissions(administrator=True)
-async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog"]):
+async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
     await bot.reload_extension(f'cogs.{extension}')
     await log(f'Bot reloaded extension: cogs.{extension}')

@@ -73,6 +73,7 @@ def set_bot_instance(bot):
     bot_instance = bot
 
 async def log(output: str, isError: bool = False):
+    return
     global bot_instance
     
     if bot_instance is None:

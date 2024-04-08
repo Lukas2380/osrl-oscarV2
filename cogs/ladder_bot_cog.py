@@ -1,12 +1,12 @@
 import asyncio
 import random
-import re
 import typing
 import discord
 from discord.ext import commands
 from discord import app_commands, Embed
 from datetime import datetime, timedelta
 from data.helper_functions import *
+from .ladder_betting_cog import *
 
 class LadderBot_cog(commands.Cog):
     def __init__(self, bot):
@@ -433,10 +433,11 @@ class LadderBot_cog(commands.Cog):
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="results", description="Submit the results of a challenge")
-    async def results(self, interaction, result: typing.Literal["W", "L"]):
+    async def results(self, interaction, result: typing.Literal["W", "L"], winner: discord.User):
         await interaction.response.defer()
 
-        player = interaction.user
+        #player = interaction.user
+        player = winner
         noActiveChallenge = True
 
         for challenge in activeChallenges:
@@ -490,6 +491,8 @@ class LadderBot_cog(commands.Cog):
 
                 self.update_stats(winner, True)
                 self.update_stats(loser, False)
+
+                Ladderbetting_cog.payout(winner, loser)
 
                 activeChallenges.remove(challenge)
                 cooldowns.append(f'{loser} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
