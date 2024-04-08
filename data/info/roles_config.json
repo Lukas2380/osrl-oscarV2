@@ -16,7 +16,7 @@
         "title": "Regions",
         "description": "What region do you mostly play in?",
         "roles": {
-            "AFRICA": "AFRICA",
+            "Africa": "AFRICA",
             "Asia": "ASIA",
             "EU": "EUROPE",
             "OCE": "OCEANIA",

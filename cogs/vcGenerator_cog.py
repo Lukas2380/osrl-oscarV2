@@ -48,7 +48,7 @@ class VCGeneratorCog(commands.Cog):
                     self.created_channels.remove(channel_id)
                     await channel.delete()
                 except Exception as e:
-                    log("Error while trying to delete channel: " + str(channel_id))
+                    await log("Error while trying to delete channel: " + str(channel_id))
 
     @app_commands.command(name="vcgen-list", description="List VC generators")
     async def list_vc_generators(self, interaction: discord.Interaction):
