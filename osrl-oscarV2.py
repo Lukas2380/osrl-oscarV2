@@ -8,6 +8,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from discord import app_commands
 import requests
+from cogs.ladder_betting_cog import Ladderbetting_cog
 from data.helper_functions import *
 
 # Load environment variables from .env
@@ -82,7 +83,7 @@ async def load_cogs():
             await bot.load_extension(f'cogs.{filename[:-3]}')
             await log(f'-- Bot loaded {filename} on startup')
 
-# Bang insultment corner #todo: make it happen to the person who last lost a 1v1 ladder match
+# Bang insultment corner #? todo: make it happen to the person who last lost a 1v1 ladder match
 @bot.event
 async def on_message(message):
     # Check if the message is from the specific user (Bang)

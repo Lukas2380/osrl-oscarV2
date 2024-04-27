@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands, Embed
 from datetime import datetime, timedelta
+from cogs.ladder_betting_cog import Ladderbetting_cog
 from data.helper_functions import *
 
 class LadderAdmin_cog(commands.Cog):
@@ -56,6 +57,7 @@ class LadderAdmin_cog(commands.Cog):
                 # Remove the active challenge if one with the player is found
                 for challenge in activeChallenges:
                     if str(player.id) in challenge:
+                        await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                         activeChallenges.remove(challenge)
                         break
                 writeToFile('activeChallenges', activeChallenges)
@@ -105,6 +107,7 @@ class LadderAdmin_cog(commands.Cog):
                 if not alreadyLocked:
                     for challenge in activeChallenges:
                         if str(player.id) in challenge:
+                            await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                             activeChallenges.remove(challenge)
 
                     # Remove player from the leaderboard and add them to the locked player list
@@ -165,6 +168,7 @@ class LadderAdmin_cog(commands.Cog):
         for challenge in activeChallenges:
             if str(player.id) in challenge:
                 noActiveChallenge = False
+                await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                 activeChallenges.remove(challenge)
                 writeToFile('activeChallenges', activeChallenges)
 
@@ -204,7 +208,7 @@ class LadderAdmin_cog(commands.Cog):
         # This goes through all the txt files and tries to change the usernames to user ids
         await interaction.response.defer()
         await log("Updating Leaderboard...")
-        leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets = load_data()
+        leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime = load_data()
         
         newLeaderboard = []
         newActiveChallenges = []

@@ -1,10 +1,11 @@
 import re
 import socket
+import typing
 import discord
-
 
 red = 0xFF5733
 blue = 0x0CCFFF
+green = 0x73ff00
 infoEmbedColor = 0x03fc0b
 
 osrl_Server = None # This is the OSRL Server ID
@@ -64,16 +65,29 @@ def load_data():
         wallets = data.split('\n')
         wallets.pop(-1)
 
-    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets
+    with open('./data/ladder/wallets_activityBonusMessages.txt', 'r+') as file:
+        data = file.read()
+        activityBonusMessages = {}
+        for line in data.split('\n'):
+            if line != "":
+                activityBonusMessages[line.split(' - ')[0]] = int(line.split(' - ')[1])
 
-leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets = load_data()
+    with open('./data/ladder/wallets_activityBonusVCTime.txt', 'r+') as file:
+        data = file.read()
+        activityBonusVCTime = {}
+        for line in data.split('\n'):
+            if line != "":
+                activityBonusVCTime[line.split(' - ')[0]] = int(line.split(' - ')[1])
+
+    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime
+
+leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime = load_data()
 
 def set_bot_instance(bot):
     global bot_instance
     bot_instance = bot
 
 async def log(output: str, isError: bool = False):
-    return
     global bot_instance
     
     if bot_instance is None:
@@ -93,6 +107,11 @@ def writeToFile(file: str, mylist: list):
     with open(f'./data/ladder/{file}.txt', "w") as file:
         for entry in mylist:
             file.write(entry+'\n')
+
+def writeDictToFile(file: str, myDict: dict):
+    with open(f'./data/ladder/{file}.txt', "w") as file:
+        for person, extraWallet in myDict.items():
+            file.write(f"{person} - {extraWallet}\n")
 
 async def update_ladder(guild):
         channel = guild.get_channel(ladder_channel)
@@ -119,21 +138,51 @@ async def get_activeChallenges(guild):
             # Clear the output and write the active challenges
             active_challenges = ""
 
+            # Get the Mr. Moneybags
+            highest_wallet = -float('inf')
+            mr_moneybags = None
+            
+            # Iterate through wallets list to find the user with the highest wallet
+            for wallet in wallets:
+                user_id, user_wallet = wallet.split(" - ")
+                user_wallet = int(user_wallet)
+                if user_wallet > highest_wallet:
+                    highest_wallet = user_wallet
+                    mr_moneybags = user_id
+
             for challenge in activeChallenges:
+                    symbol = "⚔️"
+                    firstPlayerColor = "red"
+                    secondPlayerColor = "red"
                     # Get the playernames, playerpositions and usernames of the players
-                    firstPlayer, secondPlayer, date, _  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
+                    firstPlayerID, secondPlayerID, date, isGuardianChal  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
                     ##firstPlayerPosition = leaderboard.index(firstPlayer) + 1 # !for positioning if wanted
-                    firstPlayer = await get_username(guild, firstPlayer)
-                    secondPlayer = await get_username(guild, secondPlayer)
-                    
+                    firstPlayer = await get_username(guild, firstPlayerID)
+                    secondPlayer = await get_username(guild, secondPlayerID)
+
+                    if mr_moneybags == firstPlayerID:
+                        firstPlayerColor = "green"
+                    elif mr_moneybags == secondPlayerID:
+                        secondPlayerColor = "green"
+
+                    if isGuardianChal == "true":
+                        symbol = "🗡️"
+                        secondPlayerColor = "blue"
+
+                    if secondPlayerID in leaderboard[0]:
+                        secondPlayerColor = "gold"
+
                     if len(firstPlayer+secondPlayer) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
                         firstPlayer = firstPlayer[:17]
                         secondPlayer = secondPlayer[:17]
-                    
+
+                    firstPlayer = coloriseString(firstPlayer, firstPlayerColor)
+                    secondPlayer = coloriseString(secondPlayer, secondPlayerColor)
+
                     # Write and format the active challenges
-                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} ⚔️ {secondPlayer}{' '* (14 - len(secondPlayer))}\n"
+                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} {symbol} {secondPlayer}{' '* (14 - len(secondPlayer))}\n"
         
-        return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```{active_challenges}```")
+        return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{active_challenges}```")
 
 
 async def get_ladder(guild):
@@ -141,39 +190,119 @@ async def get_ladder(guild):
         ladder_table = 'No one on the ladder'
 
         if len(leaderboard) > 0:
-                # Clear the output and write the ladder
-                ladder_table = ""
-                rank = 0
+            # Clear the output and write the ladder
+            ladder_table = ""
+            rank = 0
 
-                for person in leaderboard:
-                    symbol = ''
-                    #guardian = ""
-                    rank += 1
+            # Get the Mr. Moneybags
+            highest_wallet = -float('inf')
+            mr_moneybags = None
+            
+            # Iterate through wallets list to find the user with the highest wallet
+            for wallet in wallets:
+                user_name, user_wallet = wallet.split(" - ")
+                user_wallet = int(user_wallet)
+                if user_wallet > highest_wallet:
+                    highest_wallet = user_wallet
+                    mr_moneybags = user_name
+            
+            # Call the function to assign the "Mr. Moneybags" role
+            if mr_moneybags:
+                await assign_mr_moneybags_role(guild, mr_moneybags)
 
-                    # Check if the person is in the activeChallenges list
-                    for element in activeChallenges:
-                        # Different symbol if they are in a guardian challenge (element.split(" - "):  first person is the attacker, second the defender)
-                        if person in element.split(" - ")[0]:
-                            if element.split(" - ")[3] == "true":
-                                symbol = "[🗡️]"
-                            else:
-                                symbol = "[⚔️]"
-                        elif person in element.split(" - ")[1]:
-                            if element.split(" - ")[3] == "true":
-                                symbol = "[🛡️]"
-                            else:
-                                symbol = "[⚔️]"
+            for person in leaderboard:
+                symbol = ''
+                rank += 1
 
-                    # Write and format the ladder
-                    username = await get_username(guild, person)
+                # Write and format the ladder
+                username = await get_username(guild, person)
+                makeColor = ""
 
-                    #lst = [3] + [i for i in range(5, len(leaderboard), 5)]
-                    #if (leaderboard.index(person) + 1) in lst:
-                        #guardian = "🛡️"
+                # Check if the person is in the activeChallenges list
+                for element in activeChallenges:
+                    # Different symbol if they are in a guardian challenge (element.split(" - "):  first person is the attacker, second the defender)
+                    if person in element.split(" - ")[0]:
+                        makeColor = "red"
+                        if element.split(" - ")[3] == "true":
+                            symbol = "🗡️"
+                        else:
+                            symbol = "⚔️"
+                    elif person in element.split(" - ")[1]:
+                        makeColor = "red"
+                        if element.split(" - ")[3] == "true":
+                            symbol = "🗡️"
+                        else:
+                            symbol = "⚔️"
 
-                    ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
+                lst = [3] + [i for i in range(5, len(leaderboard)+1, 5)]
+                if (leaderboard.index(person) + 1) in lst:
+                    symbol += "🛡️"
+                    makeColor = "blue"
 
-        return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```{ladder_table}```")
+                if person == mr_moneybags:
+                    symbol += "💰"
+                    makeColor = "green"
+
+                if rank == 1:
+                    symbol += "👑"
+                    makeColor = "gold"
+
+                username = coloriseString(username, makeColor)
+
+                if symbol != "":
+                    symbol = f"[{symbol}]"
+
+                ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
+
+        return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```")
+
+async def assign_mr_moneybags_role(guild, mr_moneybags):
+    # Define the name of the role you want to assign
+    role_name = "Mr. Moneybags"
+    
+    # Find the role in the guild
+    role = discord.utils.get(guild.roles, name=role_name)
+    mr_moneybags_user = await guild.fetch_member(mr_moneybags)
+
+    # If the role is found
+    if role:
+        # Check if the user already has the "Mr. Moneybags" role
+        if role not in mr_moneybags_user.roles:
+            # Iterate through all the members of the guild
+            for member in guild.members:
+                # Remove the "Mr. Moneybags" role from all members
+                if role in member.roles:
+                    await member.remove_roles(role)
+        
+            # Add the role to the user if they do not already have it
+            await mr_moneybags_user.add_roles(role)
+            await log(f"Assigned 'Mr. Moneybags' role to {mr_moneybags_user.display_name}")
+        else:
+            await log(f"{mr_moneybags_user.display_name} already has the 'Mr. Moneybags' role")
+
+
+def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "green", "gold", "blue", "pink", "cyan", "white"]
+    match color:
+        case "grey":
+            output = f"[2;30m{input}[0m"
+        case "red":
+            output = f"[2;31m{input}[0m"
+        case "green":
+            output = f"[2;32m{input}[0m"
+        case "gold":
+            output = f"[2;33m{input}[0m"
+        case "blue":
+            output = f"[2;34m{input}[0m"
+        case "pink":
+            output = f"[2;35m{input}[0m"
+        case "cyan":
+            output = f"[2;36m{input}[0m"
+        case "white":
+            output = f"[2;37m{input}[0m"
+        case _:
+            output = input
+
+    return output
 
 async def get_user_id(guild, person):
         if person.startswith("<@"):

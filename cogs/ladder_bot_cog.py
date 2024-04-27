@@ -17,7 +17,6 @@ class LadderBot_cog(commands.Cog):
         # things to do before launching
         #? todo: make the txt files more readable with having the names displayed aswell and just ignore them in the code
         # todo: make command for editing txt files
-        # todo: betting?
 
     async def custom_on_ready(self):
         #await asyncio.sleep(10)
@@ -250,12 +249,16 @@ class LadderBot_cog(commands.Cog):
 
         # Create the embed
         embed = discord.Embed(title=f"Stats for {player.display_name}", color=blue)
-        embed.set_thumbnail(url=player.avatar.url)
+        embed.set_thumbnail(url=player.display_avatar.url)   
 
         if playerIsLocked:
             embed.add_field(name="Locked Status", value=f"{lockedStatus}", inline=False)
 
-        embed.add_field(name="Ladder Position", value=f"```{playerRank}```", inline=False)
+        embed.add_field(name="Ladder Position", value=f"```{playerRank}```", inline=True)
+
+        embed.add_field(name="Coins:", value=f"```{getWallet(playerID)}```", inline=True)
+
+        embed.add_field(name="", value="", inline=False)
 
         if not playerIsLocked:
             if active_challenge_info:
@@ -326,13 +329,15 @@ class LadderBot_cog(commands.Cog):
                 break
 
         if not playerIsInLeaderboard:
-            response = Embed(title="Error", description=f'User: {player.mention} was not found in the leaderboard')
+            response = Embed(title="Error", description=f'User: {player.mention} was not found in the leaderboard', color=red)
 
         if playerIsFirst:
             response = Embed(title="Error", description=f'{player.mention} there is no one left to challenge for you!')
         await interaction.followup.send(embed=response)
 
     def handleCooldowns(self, player):
+        cooldownsToRemove = []
+        response = ""
         # This is called for the player who put in /challenge or /challenge-guardian
         for cooldown in cooldowns:
             if str(player.id) in cooldown:
@@ -341,7 +346,7 @@ class LadderBot_cog(commands.Cog):
 
                 # If cooldown ran out
                 if remaining_time < timedelta(0):
-                    cooldowns.remove(cooldown)
+                    cooldownsToRemove.append(cooldown)
                 else:
                     # Get the remaining time and format the output
                     _, seconds = divmod(remaining_time.seconds, 86400)
@@ -355,7 +360,11 @@ class LadderBot_cog(commands.Cog):
                         description=f"Your challenge cooldown has not run out yet, you still have to wait: \n**{days} days, {hours} hours, {minutes} minutes, and {seconds} seconds** before you can challenge again",
                         color=red
                     )
-                    return response
+
+        for cooldown in cooldownsToRemove:
+            cooldowns.remove(cooldown)
+
+        return response
 
     @app_commands.command(name="challenge-guardian", description="Challenge the guardian above you")
     async def challenge_guardian(self, interaction):
@@ -433,11 +442,10 @@ class LadderBot_cog(commands.Cog):
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="results", description="Submit the results of a challenge")
-    async def results(self, interaction, result: typing.Literal["W", "L"], winner: discord.User):
+    async def results(self, interaction, result: typing.Literal["W", "L"]):
         await interaction.response.defer()
 
-        #player = interaction.user
-        player = winner
+        player = interaction.user
         noActiveChallenge = True
 
         for challenge in activeChallenges:
@@ -492,7 +500,22 @@ class LadderBot_cog(commands.Cog):
                 self.update_stats(winner, True)
                 self.update_stats(loser, False)
 
-                Ladderbetting_cog.payout(winner, loser)
+                # Make sure to fetch loserUser and winnerUser as discord.Member instances
+                loserUser = await interaction.guild.fetch_member(loser)
+                winnerUser = await interaction.guild.fetch_member(winner)
+
+                # Check if the winner is in the first place position
+                if leaderboard.index(winner) == 0:
+                    # Fetch the role named "1v1 Ladder El Jefe" from the guild
+                    role = discord.utils.get(interaction.guild.roles, name="1v1 Ladder El Jefe")
+                    
+                    # Remove the role from the loser
+                    await loserUser.remove_roles(role)
+                    await log(f"Took away '{role}' from {loserUser.display_name}")
+                    
+                    # Add the role to the winner
+                    await winnerUser.add_roles(role)
+                    await log(f"Made {winnerUser.display_name} '{role}'")
 
                 activeChallenges.remove(challenge)
                 cooldowns.append(f'{loser} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}') 
@@ -503,12 +526,14 @@ class LadderBot_cog(commands.Cog):
                 
                 await update_ladder(interaction.guild)
                 response.add_field(name="Leaderboard Change", value=leaderboard_change, inline=False)
+
+                await interaction.followup.send(embed=response)
+                await Ladderbetting_cog.payout(self, interaction, winner, loser)
                 break
 
         if noActiveChallenge:
             response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=red)
-
-        await interaction.followup.send(embed=response)
+            await interaction.followup.send(embed=response)
 
     def movePlayerinLeaderboard(self, player: str, position: int):
         # This is being called everytime there is a change in the leaderboard
