@@ -440,6 +440,7 @@ class Ladderbetting_cog(commands.Cog):
 
     @app_commands.command(name="claim-coins", description="With this command you can claim your daily coins for betting on the 1s ladder.")
     async def claim_coins(self, interaction):
+        await interaction.response.defer()
         user_id = str(interaction.user.id)
         current_time = datetime.now()
 
