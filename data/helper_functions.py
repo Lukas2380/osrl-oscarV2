@@ -79,9 +79,16 @@ def load_data():
             if line != "":
                 activityBonusVCTime[line.split(' - ')[0]] = int(line.split(' - ')[1])
 
-    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime
+    with open('./data/ladder/claimcoins_cooldown.txt', 'r+') as file:
+        data = file.read()
+        claimcoinsCooldown = {}
+        for line in data.split('\n'):
+            if line != "":
+                claimcoinsCooldown[line.split(' - ')[0]] = line.split(' - ')[1]
 
-leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime = load_data()
+    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown
+
+leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown = load_data()
 
 def set_bot_instance(bot):
     global bot_instance

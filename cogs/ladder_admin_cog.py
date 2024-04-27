@@ -208,7 +208,7 @@ class LadderAdmin_cog(commands.Cog):
         # This goes through all the txt files and tries to change the usernames to user ids
         await interaction.response.defer()
         await log("Updating Leaderboard...")
-        leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime = load_data()
+        leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown = load_data()
         
         newLeaderboard = []
         newActiveChallenges = []

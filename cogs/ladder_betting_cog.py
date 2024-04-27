@@ -21,7 +21,6 @@ class Ladderbetting_cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Dictionary to track the last claim time for each user
-        self.last_claim_time = {}
         self.lastBonusTime = {}  # Dictionary to track the last bonus time for each user
         self.cooldown_period = 30  # Cooldown period in seconds (e.g., 60 seconds for 1 minute)
         self.voiceEntryTime = {}
@@ -445,8 +444,10 @@ class Ladderbetting_cog(commands.Cog):
         current_time = datetime.now()
 
         # Check the last claim time for the user
-        if user_id in self.last_claim_time:
-            last_claim_date = self.last_claim_time[user_id]
+        if user_id in claimcoinsCooldown:
+            # Convert last_claim_date from string to datetime
+            last_claim_date = datetime.fromisoformat(claimcoinsCooldown[user_id])
+
             # Calculate the time difference since the last claim
             time_since_last_claim = current_time - last_claim_date
 
@@ -486,11 +487,12 @@ class Ladderbetting_cog(commands.Cog):
         activityBonusVCTime[str(user_id)] = 0
         activityBonusMessages[str(user_id)] = 0
 
+        # Update the last claim time for the user
+        claimcoinsCooldown[user_id] = str(current_time)
+
         writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
         writeDictToFile("wallets_activityBonusVCTime", activityBonusVCTime)
-
-        # Update the last claim time for the user
-        self.last_claim_time[user_id] = current_time
+        writeDictToFile("claimcoins_cooldown", claimcoinsCooldown)
 
         await interaction.followup.send(
             embed=Embed(
