@@ -466,7 +466,7 @@ class Ladderbetting_cog(commands.Cog):
                 )
 
                 # Send the embed as a response
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+                await interaction.followup.send(embed=embed)
                 return
 
         # Allow the user to claim coins
@@ -491,7 +491,7 @@ class Ladderbetting_cog(commands.Cog):
         # Update the last claim time for the user
         self.last_claim_time[user_id] = current_time
 
-        await interaction.response.send_message(
+        await interaction.followup.send(
             embed=Embed(
                 title="Coins added",
                 description=f"{coins_to_add + activityCoins} coins were added to your wallet!",
