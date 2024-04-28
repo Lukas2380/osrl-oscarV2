@@ -275,7 +275,7 @@ class Ladderbetting_cog(commands.Cog):
         if len(wallets) > 0:
             walletOutput = ""
             # Step 1: Split the list and sort by coins in descending order
-            sorted_wallets = sorted((entry.split(' - ') for entry in wallets), key=lambda x: int(x[1]), reverse=True)
+            sorted_wallets = sorted((entry.split(' - ') for entry in wallets if str(self.bot.user.id) != entry), key=lambda x: int(x[1]), reverse=True)
             # Step 3: Take top 20 entries
             top_20_wallets = sorted_wallets[:20]
             # Step 4: Format the output string
@@ -418,7 +418,7 @@ class Ladderbetting_cog(commands.Cog):
 
         await interaction.followup.send(embed=response)
 
-    def calculate_odds_ratio(total_bets, player_bets):
+    def calculate_odds_ratio(self, total_bets, player_bets):
         ratio = total_bets / player_bets
         
         # Format the ratio based on the decimal part
