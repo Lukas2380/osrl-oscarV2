@@ -292,8 +292,12 @@ class Ladderbetting_cog(commands.Cog):
         await interaction.followup.send(f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```")
 
     @app_commands.command(name="show-wallet", description="Only shows you your own wallet")
-    async def show_wallet(self, interaction, player: discord.User,):
+    async def show_wallet(self, interaction, player: discord.Member,):
         await interaction.response.defer()
+
+        if player.bot:
+            await interaction.followup.send(embed=Embed(title="Cant get this wallet", description="This person is a bot and doesnt have a wallet.", color="red"))
+            return
 
         user = str(player.id)
         walletAmount = getWallet(user)
