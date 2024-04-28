@@ -418,7 +418,7 @@ class Ladderbetting_cog(commands.Cog):
 
         await interaction.followup.send(embed=response)
 
-    def format_ratio(total_bets, player_bets):
+    def calculate_odds_ratio(total_bets, player_bets):
         ratio = total_bets / player_bets
         
         # Format the ratio based on the decimal part
