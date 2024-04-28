@@ -167,9 +167,11 @@ class Ladderbetting_cog(commands.Cog):
                         
             writeToFile("wallets", wallets)
 
+        await assign_mr_moneybags_role(interaction.guild)
 
 
-    def placeBet(self, user, player, amount):        
+
+    async def placeBet(self, interaction, user, player, amount):        
         bets.append(f"{player} - {user} - {str(amount)} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
         for wallet in wallets:
@@ -179,6 +181,8 @@ class Ladderbetting_cog(commands.Cog):
         
         writeToFile("bets", bets)
         writeToFile("wallets", wallets)
+
+        await assign_mr_moneybags_role(interaction.guild)
 
         return self.getBetsFromUserOnPlayer(user, player)
 
@@ -261,9 +265,11 @@ class Ladderbetting_cog(commands.Cog):
                     else:
                         if amount > int(coinsInWallet):
                             amount = int(coinsInWallet)
-                        coinsBet = self.placeBet(str(interaction.user.id), str(player.id), amount)
+                        coinsBet = await self.placeBet(interaction, str(interaction.user.id), str(player.id), amount)
                         response = Embed(title="Bet placed", description=f'{interaction.user.mention} now bets {str(coinsBet)} coins on {player.mention}')
                     break
+
+        await assign_mr_moneybags_role(interaction.guild)
 
         await interaction.followup.send(embed=response)
 
@@ -326,6 +332,8 @@ class Ladderbetting_cog(commands.Cog):
         response.add_field(name="", value="", inline=True)
         response.add_field(name="", value="", inline=False)
         response.add_field(name="**Current bets:**", value=f"```ansi\n{currentBets}```")
+
+        await assign_mr_moneybags_role(interaction.guild)
 
         await interaction.followup.send(embed=response)
 
@@ -497,6 +505,8 @@ class Ladderbetting_cog(commands.Cog):
         writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
         writeDictToFile("wallets_activityBonusVCTime", activityBonusVCTime)
         writeDictToFile("claimcoins_cooldown", claimcoinsCooldown)
+
+        await assign_mr_moneybags_role(interaction.guild)
 
         await interaction.followup.send(
             embed=Embed(

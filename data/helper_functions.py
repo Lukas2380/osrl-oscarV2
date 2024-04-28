@@ -200,22 +200,7 @@ async def get_ladder(guild):
             # Clear the output and write the ladder
             ladder_table = ""
             rank = 0
-
-            # Get the Mr. Moneybags
-            highest_wallet = -float('inf')
-            mr_moneybags = None
-            
-            # Iterate through wallets list to find the user with the highest wallet
-            for wallet in wallets:
-                user_name, user_wallet = wallet.split(" - ")
-                user_wallet = int(user_wallet)
-                if user_wallet > highest_wallet:
-                    highest_wallet = user_wallet
-                    mr_moneybags = user_name
-            
-            # Call the function to assign the "Mr. Moneybags" role
-            if mr_moneybags:
-                await assign_mr_moneybags_role(guild, mr_moneybags)
+            mr_moneybags = await assign_mr_moneybags_role(guild)
 
             for person in leaderboard:
                 symbol = ''
@@ -263,12 +248,28 @@ async def get_ladder(guild):
 
         return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```")
 
-async def assign_mr_moneybags_role(guild, mr_moneybags):
+async def assign_mr_moneybags_role(guild):
+    if len(wallets) == 0:
+        return
+
     # Define the name of the role you want to assign
     role_name = "Mr. Moneybags"
     
     # Find the role in the guild
     role = discord.utils.get(guild.roles, name=role_name)
+
+    # Get Mr. Moneybags
+    highest_wallet = -float('inf')
+    mr_moneybags = None
+    
+    # Iterate through wallets list to find the user with the highest wallet
+    for wallet in wallets:
+        user_name, user_wallet = wallet.split(" - ")
+        user_wallet = int(user_wallet)
+        if user_wallet > highest_wallet:
+            highest_wallet = user_wallet
+            mr_moneybags = user_name
+
     mr_moneybags_user = await guild.fetch_member(mr_moneybags)
 
     # If the role is found
@@ -286,6 +287,8 @@ async def assign_mr_moneybags_role(guild, mr_moneybags):
             await log(f"Assigned 'Mr. Moneybags' role to {mr_moneybags_user.display_name}")
         else:
             await log(f"{mr_moneybags_user.display_name} already has the 'Mr. Moneybags' role")
+
+    return str(mr_moneybags_user.id)
 
 
 def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "green", "gold", "blue", "pink", "cyan", "white"]
