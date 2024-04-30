@@ -396,15 +396,15 @@ class Ladderbetting_cog(commands.Cog):
         selecedChallenge = playerUsername + " ⚔️ " + otherPlayerUsername
         response = Embed(title=selecedChallenge, description=f"Some bets might not be counted if they were submitted to late.\n```ansi\n🟢{coloriseString('Green', 'green')} = Will currently be counted\n🔴{coloriseString('Red', 'red')} = Will currently not be counted```")
 
-        if betsOnPlayer == "" or betsOnOtherPlayer == "":
-            odds_ratio_player = "N/A"
-            odds_ratio_other_player = "N/A"
-        else:
+        try:
             # Calculate and format the odds ratio for the first player
             odds_ratio_player = self.calculate_odds_ratio(totalCoinsBet, totalCoinsBetOnPlayer)
 
             # Calculate and format the odds ratio for the other player
             odds_ratio_other_player = self.calculate_odds_ratio(totalCoinsBet, totalCoinsBetOnOtherPlayer)
+        except ZeroDivisionError:
+            odds_ratio_player = "N/A"
+            odds_ratio_other_player = "N/A"
 
         # Add the fields to the response
         response.add_field(
@@ -485,7 +485,7 @@ class Ladderbetting_cog(commands.Cog):
 
         # Allow the user to claim coins
         coins_in_wallet = int(getWallet(user_id))
-        coins_to_add = random.randint(20, 50)
+        coins_to_add = random.randint(0, 25)
         # Retrieve activity bonus coins from both sources
         activityCoins = 0
         activityCoins += activityBonusVCTime.get(str(user_id), 0)
@@ -536,7 +536,7 @@ class Ladderbetting_cog(commands.Cog):
 
             activityBonusMessages.setdefault(str(message.author.id), 0)
             if activityBonusMessages[str(message.author.id)] < 25:
-                activityBonusMessages[str(message.author.id)] += 5
+                activityBonusMessages[str(message.author.id)] += 2
                 await log(f"Added 5 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
                 writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
 
@@ -567,7 +567,7 @@ class Ladderbetting_cog(commands.Cog):
                 
                 # Add the reward to the user's activity bonus wallet
                 activityBonusVCTime.setdefault(str(member.id), 0)
-                if activityBonusVCTime[str(member.id)] + reward < 25:
+                if activityBonusVCTime[str(member.id)] + reward > 25:
                     activityBonusVCTime[str(member.id)] += reward
                     await log(f"Added {reward} coins to {member.display_name}'s wallet for spending {time_spent / 60:.2f} minutes in voice channels. Total activity coins: {activityBonusVCTime[str(member.id)]}")
                 else:
