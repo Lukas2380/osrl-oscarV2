@@ -537,7 +537,7 @@ class Ladderbetting_cog(commands.Cog):
             activityBonusMessages.setdefault(str(message.author.id), 0)
             if activityBonusMessages[str(message.author.id)] < 25:
                 activityBonusMessages[str(message.author.id)] += 2
-                await log(f"Added 5 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
+                await log(f"Added 2 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
                 writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
 
             self.lastBonusTime[user_id] = current_time
