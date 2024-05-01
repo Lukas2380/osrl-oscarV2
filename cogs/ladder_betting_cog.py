@@ -160,6 +160,8 @@ class Ladderbetting_cog(commands.Cog):
                     oldWalletAmount = int(wallet.split(' - ')[1])
                     if loserId in wallet:
                         newWalletAmount = oldWalletAmount - betOfLoser
+                        if newWalletAmount < 0:
+                            newWalletAmount = 0
                         wallets[wallets.index(wallet)] = f"{loserId} - {str(newWalletAmount)}"
                         # Notify the user
                         loserUser = await self.bot.fetch_user(int(loserId))
@@ -559,15 +561,12 @@ class Ladderbetting_cog(commands.Cog):
                 
                 # Define the reward rate: 2 coins for every 10 minutes
                 reward_rate = 2 / 600  # 2 coins per 600 seconds (10 minutes)
-                print(reward_rate)
                 
                 # Calculate the reward based on the time spent
                 reward = int(time_spent * reward_rate)
-                print(reward)
                 
                 # Add the reward to the user's activity bonus wallet
                 activityBonusVCTime.setdefault(str(member.id), 0)
-                print(activityBonusVCTime[str(member.id)])
                 if activityBonusVCTime[str(member.id)] + reward < 25:
                     activityBonusVCTime[str(member.id)] += reward
                     await log(f"Added {reward} coins to {member.display_name}'s wallet for spending {time_spent / 60:.2f} minutes in voice channels. Total activity coins: {activityBonusVCTime[str(member.id)]}")
