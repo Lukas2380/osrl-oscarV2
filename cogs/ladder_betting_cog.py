@@ -487,13 +487,12 @@ class Ladderbetting_cog(commands.Cog):
         coins_in_wallet = int(getWallet(user_id))
         coins_to_add = random.randint(0, 25)
         # Retrieve activity bonus coins from both sources
-        activityCoins = 0
-        activityCoins += activityBonusVCTime.get(str(user_id), 0)
-        activityCoins += activityBonusMessages.get(str(user_id), 0)
+        activityCoinsVC = activityBonusVCTime.get(str(user_id), 0)
+        activityCoinsMessages = activityBonusMessages.get(str(user_id), 0)
 
         for wallet in wallets:
             if user_id in wallet:
-                wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoins}"
+                wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
                 await log(f"{await get_username(interaction.guild, user_id)} (Had: {coins_in_wallet}, Random: {coins_to_add}, VC: {activityBonusVCTime.get(str(user_id), 0)}, Messages: {activityBonusMessages.get(str(user_id), 0)})")
 
         activityBonusVCTime[str(user_id)] = 0
@@ -511,10 +510,9 @@ class Ladderbetting_cog(commands.Cog):
         await interaction.followup.send(
             embed=Embed(
                 title="Coins added",
-                description=f"{coins_to_add + activityCoins} coins were added to your wallet!",
+                description=f"{coins_to_add + activityCoinsVC + activityCoinsMessages} coins were added to your wallet!",
                 color=green
-            ),
-            ephemeral=True
+            )
         )
 
     @commands.Cog.listener()
@@ -559,15 +557,18 @@ class Ladderbetting_cog(commands.Cog):
                 # Calculate the time spent in the voice channel
                 time_spent = time.time() - entry_time
                 
-                # Define the reward rate:
-                reward_rate = 5 / (5 * 60)  # 5 coins per 15 minutes
+                # Define the reward rate: 2 coins for every 10 minutes
+                reward_rate = 2 / 600  # 2 coins per 600 seconds (10 minutes)
+                print(reward_rate)
                 
                 # Calculate the reward based on the time spent
                 reward = int(time_spent * reward_rate)
+                print(reward)
                 
                 # Add the reward to the user's activity bonus wallet
                 activityBonusVCTime.setdefault(str(member.id), 0)
-                if activityBonusVCTime[str(member.id)] + reward > 25:
+                print(activityBonusVCTime[str(member.id)])
+                if activityBonusVCTime[str(member.id)] + reward < 25:
                     activityBonusVCTime[str(member.id)] += reward
                     await log(f"Added {reward} coins to {member.display_name}'s wallet for spending {time_spent / 60:.2f} minutes in voice channels. Total activity coins: {activityBonusVCTime[str(member.id)]}")
                 else:
