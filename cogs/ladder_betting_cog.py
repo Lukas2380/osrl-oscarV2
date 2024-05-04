@@ -35,7 +35,7 @@ class Ladderbetting_cog(commands.Cog):
         # Add 100 coins to the wallet of the winner
         currentCoinsOfWinner = getWallet(winner)
         currentCoinsOfLoser = getWallet(loser)
-        channel = self.get_channel(1098739590820540506)
+        channel = interaction.guild.get_channel(1098739590820540506)
 
         for wallet in wallets:
             if winner in wallet:
