@@ -44,6 +44,17 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
     await log(f'Bot reloaded extension: cogs.{extension}')
     await interaction.followup.send(f"Bot reloaded extension: {extension}")
 
+@bot.tree.command(name="sync-commands", description="Syncs the commands")
+async def sync(interaction):
+    await interaction.response.defer()
+    try:
+        await log("...Trying to sync the commands")
+        synced = await bot.tree.sync()
+        await interaction.followup.send(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        await interaction.followup.send("Couldnt load commands")
+        await log(e, isError=True)
+
 @bot.event
 async def on_error(event, *args, **kwargs):
     error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
@@ -62,14 +73,7 @@ async def on_ready():
     bot_permissions = guild.me.guild_permissions
     permissions_str = ", ".join([perm[0].replace("_", " ").capitalize() for perm in bot_permissions if perm[1]])
     await log(f"Bot's Permissions in the Server: {permissions_str}")
-
-    try:
-        await log("...Trying to sync the commands")
-        synced = await bot.tree.sync()
-        await log(f"Synced {len(synced)} command(s)")
-    except Exception as e:
-        await log("Couldnt load commands")
-        
+    
     bot.vc_generators = {}
 
 async def clearLogChannel():

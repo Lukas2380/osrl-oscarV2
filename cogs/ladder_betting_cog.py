@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands, Embed
 from data.helper_functions import *
+import discord.utils
 
 #import pymongo
 #from pymongo import MongoClient
@@ -144,8 +145,8 @@ class Ladderbetting_cog(commands.Cog):
                 multiplier = float(winner.split(' - ')[2])
 
                 for wallet in wallets:
-                    oldWalletAmount = int(wallet.split(' - ')[1])
                     if winnerId in wallet:
+                        oldWalletAmount = int(wallet.split(' - ')[1])
                         gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
                         # New entry: "player id - (old wallet amount + bet + share of loser pool)"
                         newWalletAmount = oldWalletAmount + gain
@@ -282,26 +283,7 @@ class Ladderbetting_cog(commands.Cog):
     @app_commands.command(name="show-wallets", description="Displays the top 20 wallets with the most amount of coins")
     async def show_wallets(self, interaction):
         await interaction.response.defer()
-        walletOutput = "No wallets found"
-
-        if len(wallets) > 0:
-            walletOutput = ""
-            # Step 1: Split the list and sort by coins in descending order
-            sorted_wallets = sorted((entry.split(' - ') for entry in wallets if str(self.bot.user.id) != entry), key=lambda x: int(x[1]), reverse=True)
-            # Step 3: Take top 20 entries
-            top_20_wallets = sorted_wallets[:20]
-            # Step 4: Format the output string
-            for userId, coins in top_20_wallets:
-                username = await get_username(interaction.guild, userId)
-                if userId in top_20_wallets[0] and userId in leaderboard[0]:
-                    username = "[👑💰] " + coloriseString(username, "green")
-                elif userId in top_20_wallets[0]:
-                    username = "[💰] " + coloriseString(username, "green")
-                elif userId in leaderboard[0]:
-                    username = "[👑] " + coloriseString(username, "gold")
-                walletOutput += "{:<6} | {}\n".format(coins, username)
-
-        await interaction.followup.send(f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```")
+        await interaction.followup.send(await get_wallets(interaction.guild))
 
     @app_commands.command(name="show-wallet", description="Only shows you your own wallet")
     async def show_wallet(self, interaction, player: discord.Member,):
@@ -400,7 +382,7 @@ class Ladderbetting_cog(commands.Cog):
         totalCoinsBet = totalCoinsBetOnPlayer + totalCoinsBetOnOtherPlayer
 
         selecedChallenge = playerUsername + " ⚔️ " + otherPlayerUsername
-        response = Embed(title=selecedChallenge, description=f"Some bets might not be counted if they were submitted to late.\n```ansi\n🟢{coloriseString('Green', 'green')} = Will currently be counted\n🔴{coloriseString('Red', 'red')} = Will currently not be counted```")
+        response = Embed(title=selecedChallenge, description=f"Some bets might not be counted if they were submitted too late.\n```ansi\n🟢{coloriseString('Green', 'green')} = Will currently be counted\n🔴{coloriseString('Red', 'red')} = Will currently not be counted```")
 
         try:
             # Calculate and format the odds ratio for the first player

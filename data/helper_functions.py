@@ -125,7 +125,7 @@ async def update_ladder(guild):
 
         if channel:
             # Find and delete the previous message and remove it
-            async for message in channel.history(limit=2):
+            async for message in channel.history(limit=3):
                 if message.author == guild.me:
                     if message.content.startswith('>>>'):
                         await message.delete()
@@ -133,6 +133,7 @@ async def update_ladder(guild):
             # Send the active Challenges and current ladder
             await channel.send(await get_activeChallenges(guild))
             await channel.send(await get_ladder(guild))
+            await channel.send(await get_wallets(guild))
 
         else:
             await log("Error: Channel not found.", isError=True)
@@ -247,6 +248,28 @@ async def get_ladder(guild):
                 ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
 
         return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```")
+
+async def get_wallets(guild):
+    walletOutput = "No wallets found"
+
+    if len(wallets) > 0:
+        walletOutput = ""
+        # Step 1: Split the list and sort by coins in descending order
+        sorted_wallets = sorted((entry.split(' - ') for entry in wallets if str(bot_instance.user.id) not in entry), key=lambda x: int(x[1]), reverse=True)
+        # Step 3: Take top 20 entries
+        top_20_wallets = sorted_wallets[:20]
+        # Step 4: Format the output string
+        for userId, coins in top_20_wallets:
+            username = await get_username(guild, userId)
+            if userId in top_20_wallets[0] and userId in leaderboard[0]:
+                username = "[👑💰] " + coloriseString(username, "green")
+            elif userId in top_20_wallets[0]:
+                username = "[💰] " + coloriseString(username, "green")
+            elif userId in leaderboard[0]:
+                username = "[👑] " + coloriseString(username, "gold")
+            walletOutput += "{:<6} | {}\n".format(coins, username)
+
+    return (f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```")
 
 async def assign_mr_moneybags_role(guild):
     if len(wallets) == 0:
