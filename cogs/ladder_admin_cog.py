@@ -259,5 +259,30 @@ class LadderAdmin_cog(commands.Cog):
         response = Embed(title="Ladder Updated", description="The ladder has been updated.", color=blue)
         await interaction.followup.send(embed=response)
 
+#    @app_commands.command(name="admin-createshowmatch", description="Creates a showmatch for users to bet on.")
+#    async def create_showmatch(self, interaction, player1: discord.User, player2: discord.User):
+#        await interaction.response.defer()
+#        members = interaction.guild.members
+#        options = [discord.SelectOption(label=member.name, value=str(member.id)) for member in members if not member.bot]
+#        
+#        await interaction.followup.send("Please select users who can't bet:", view=UserSelectView(options))
+
+
 async def setup(bot:commands.Bot) -> None:
     await bot.add_cog(LadderAdmin_cog(bot))
+
+#from discord.ui import View, Select
+
+#class UserSelect(Select):
+#    def __init__(self, options):
+#        super().__init__(placeholder='Select users who can\'t bet...',
+#                        min_values=1, max_values=len(options), options=options)
+
+#    async def callback(self, interaction: discord.Interaction):
+#        selected_users = [option.value for option in self.options if option.default]
+#        await interaction.response.send_message(f"Selected users: {', '.join(selected_users)}")
+
+#class UserSelectView(View):
+#    def __init__(self, options):
+#        super().__init__()
+#        self.add_item(UserSelect(options))
