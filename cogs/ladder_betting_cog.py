@@ -8,16 +8,6 @@ from discord import app_commands, Embed
 from data.helper_functions import *
 import discord.utils
 
-#import pymongo
-#from pymongo import MongoClient
-#try:
-#            cluster = MongoClient("mongodb+srv://dbUser:P3xrDm342xJ1vgbn@oscar.k8ijd1u.mongodb.net/?retryWrites=true&w=majority&appName=oscar")
-#            db = cluster["osrl_oscarV2"]
-#            collection = db["Betting"]
-#            collection.insert_one({"better_id": "0123123", "amount_of_coins": 5})
-#        except Exception as e:
-#            print(e)
-
 class Ladderbetting_cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
