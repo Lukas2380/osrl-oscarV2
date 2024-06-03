@@ -10,19 +10,10 @@ class Info_Cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        # Load channel IDs from the text file at the start of the cog
-        self.load_channel_ids()
-
-    # Initialize variables with default values or None
-    rulesChannel = None
-    faqChannel = None
-    anonrepChannel = None
-    servdirChannel = None
-    servstaffChannel = None
-    ladderrulesChannel = None
-    ladderadmininfoChannel = None
-    ladderinfoChannel = None
-    rolesChannel = None
+    # Fetch the channel IDs from the InfoChannels table
+    response = supabase.table("InfoChannels").select("channel_id").execute()
+    channel_ids = [record["channel_id"] for record in response.data]
+    rulesChannel, faqChannel, anonrepChannel, servdirChannel, servstaffChannel, ladderrulesChannel, ladderadmininfoChannel, ladderinfoChannel, rolesChannel = channel_ids[:9]
 
     footerText = "Thank you for being a part of this community, the staff work hard to ensure this is a safe and fun environment for everyone, and it wouldn't be possible without all of you"
 
@@ -32,18 +23,8 @@ class Info_Cog(commands.Cog):
         except Exception as e:
             print(e)
 
-    def load_channel_ids(self):
-        file_path = './data/info/setchannels.txt'
-
-        with open(file_path, 'r') as file:
-            for line in file:
-                # Split the line into name and ID
-                name, channel_id = line.strip().split('=')
-
-                # Update the corresponding variable
-                setattr(self, name, int(channel_id))
-
     def save_channel_ids(self):
+        # Mapping of channel names to their respective IDs
         channels_data = {
             "rulesChannel": self.rulesChannel,
             "faqChannel": self.faqChannel,
@@ -56,9 +37,12 @@ class Info_Cog(commands.Cog):
             "rolesChannel": self.rolesChannel,
         }
 
-        with open('./data/info/setchannels.txt', 'w') as file:
+        # Update each channel's ID in the database
+        try:
             for channel_name, channel_id in channels_data.items():
-                file.write(f"{channel_name}={channel_id}\n")
+                supabase.table("InfoChannels").update({"channel_id": channel_id}).eq("channel_Name", channel_name).execute()
+        except Exception as e:
+            print(e)
 
     @app_commands.command(name="info-setchannels", description="Set channels for the info embeds")
     async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
