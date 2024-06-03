@@ -18,7 +18,7 @@ osrl_Server = None # This is the OSRL Server ID
 log_channel = None # This is the id of the log channel in the OSRL Server
 ladder_channel = None # This is the id of the ladder channel in the OSRL Server
 
-if (socket.gethostname() == "Lukas-Desktop"):
+if (socket.gethostname() == "Lukas-Desktop" or socket.gethostname() == "Lukas-Laptop"):
     osrl_Server = 1150003077961756706
     log_channel = 1212470152000442429
     ladder_channel = 1212470890172780615
