@@ -2,6 +2,12 @@ import re
 import socket
 import typing
 import discord
+import os
+from supabase import create_client
+
+def connect_Supabase(url, key):
+    global supabase
+    supabase = create_client(url, key)
 
 red = 0xFF5733
 blue = 0x0CCFFF

@@ -14,11 +14,12 @@ from data.helper_functions import *
 # Load environment variables from .env
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
+url= os.environ.get("SUPABASE_URL")
+key= os.environ.get("SUPABASE_KEY")
+connect_Supabase(url, key)
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
-
-#! todo: https://www.reddit.com/r/discordapp/comments/11qy3s8/how_do_i_stop_people_from_adding_reactions_to_a/ tell catharticcup to do that on the roleselect channel 
 
 @bot.tree.command(name="cog-load", description="Load a cog", )
 @commands.has_permissions(administrator=True)
@@ -69,8 +70,6 @@ async def on_ready():
         await log(f"Synced {len(synced)} command(s)")
     except Exception as e:
         await log("Couldnt load commands")
-        
-    bot.vc_generators = {}
 
 async def clearLogChannel():
     guild = bot.get_guild(osrl_Server)
