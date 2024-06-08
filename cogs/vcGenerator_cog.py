@@ -4,6 +4,9 @@ from discord import Embed, app_commands
 import asyncio
 from data.helper_functions import *
 
+vcGeneratorTable = supabase.schema("vcgenerator_tables").table("vcGenerators")
+temporaryVCTable = supabase.schema("vcgenerator_tables").table("temporaryVC")
+
 class VCGeneratorCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -14,7 +17,7 @@ class VCGeneratorCog(commands.Cog):
             channel_id = str(after.channel.id)
 
             # Query the database for the given channel ID
-            response = supabase.table("vcGenerators").select("*").eq("vc_id", channel_id).execute()
+            response = vcGeneratorTable.select("*").eq("vc_id", channel_id).execute()
 
             # Check if the response contains data
             if response and len(response.data) > 0:
@@ -41,13 +44,13 @@ class VCGeneratorCog(commands.Cog):
                 await log(f'Moved the user to the temporary channel')
                 
                 # Insert the new channel's ID into the temporaryVC table
-                supabase.table("temporaryVC").insert({"vc_id": new_channel.id}).execute()
+                temporaryVCTable.insert({"vc_id": new_channel.id}).execute()
                 await log(f'Inserted the new channel ID into the database')
 
         await asyncio.sleep(3)
         
         # Check and delete empty channels
-        response = supabase.table("temporaryVC").select("vc_id").execute()
+        response = temporaryVCTable.select("vc_id").execute()
 
         if response and len(response.data) > 0:
             for record in response.data:
@@ -57,12 +60,12 @@ class VCGeneratorCog(commands.Cog):
                     await log(f'Found an empty temporary channel ... deleting it')
                     try:
                         # Remove the channel from the database
-                        supabase.table("temporaryVC").delete().eq("vc_id", temp_channel_id).execute()
+                        temporaryVCTable.delete().eq("vc_id", temp_channel_id).execute()
                         await temp_channel.delete()
                     except Exception as e:
                         await log(f"Error while trying to delete channel: {temp_channel_id} - {str(e)}")
                 elif not temp_channel:
-                    supabase.table("temporaryVC").delete().eq("vc_id", temp_channel_id).execute()
+                    temporaryVCTable.delete().eq("vc_id", temp_channel_id).execute()
                     await log(f'Found an already deleted temporary channel ... deleting it from the db')
 
     @app_commands.command(name="vcgen-list", description="List VC generators")
@@ -70,7 +73,7 @@ class VCGeneratorCog(commands.Cog):
         await interaction.response.defer()
         
         # Query the database to get all VC generators
-        response = supabase.table("vcGenerators").select("*").execute()
+        response = temporaryVCTable.select("*").execute()
         
         if response and len(response.data) > 0:
             vcList = ""
@@ -93,7 +96,7 @@ class VCGeneratorCog(commands.Cog):
         await interaction.response.defer()
 
         # Query the database to check if the generator already exists
-        response = supabase.table("vcGenerators").select("*").eq("vc_id", str(vc_channel.id)).execute()
+        response = vcGeneratorTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
         
         if response and len(response.data) > 0:
             # If the generator already exists
@@ -104,7 +107,7 @@ class VCGeneratorCog(commands.Cog):
             )
         else:
             # Insert the new generator into the database
-            supabase.table("vcGenerators").insert({
+            vcGeneratorTable.insert({
                 "vc_id": str(vc_channel.id),
                 "vc_name": generative_name,
                 "vc_userlimit": user_limit
@@ -124,11 +127,11 @@ class VCGeneratorCog(commands.Cog):
         await interaction.response.defer()
 
         # Query the database to check if the generator exists
-        response = supabase.table("vcGenerators").select("*").eq("vc_id", str(vc_channel.id)).execute()
+        response = vcGeneratorTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
         
         if response and len(response.data) > 0:
             # Remove the generator from the database
-            supabase.table("vcGenerators").delete().eq("vc_id", str(vc_channel.id)).execute()
+            vcGeneratorTable.delete().eq("vc_id", str(vc_channel.id)).execute()
             
             response_embed = Embed(
                 title='Generator removed',

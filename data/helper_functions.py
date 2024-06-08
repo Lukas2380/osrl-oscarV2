@@ -29,72 +29,72 @@ else:
 
 bot_instance = None
 
-#def load_data():
-#    # Read files and initialize a list for each one
-#    with open('./data/ladder/leaderboard.txt','r+') as file:
-#        data = file.read()
-#        leaderboard = data.split('\n')
-#        leaderboard.pop(-1)
-#
-#    with open('./data/ladder/activeChallenges.txt','r+') as file:
-#        data = file.read()
-#        activeChallenges = data.split('\n')
-#        activeChallenges.pop(-1)
-#
-#    with open('./data/ladder/lockedPlayers.txt','r+') as file:
-#        data = file.read()
-#        locked_players = data.split('\n')
-#        locked_players.pop(-1)
-#
-#    with open('./data/ladder/stats.txt','r+') as file:
-#        data = file.read()
-#        stats = data.split('\n')
-#        stats.pop(-1)
-#
-#    with open('./data/ladder/streaksLeaderboard.txt', 'r+') as file:
-#        data = file.read()
-#        streaksLeaderboard = data.split('\n')
-#        streaksLeaderboard.pop(-1)
-#
-#    with open('./data/ladder/cooldowns.txt', 'r+') as file:
-#        data = file.read()
-#        cooldowns = data.split('\n')
-#        cooldowns.pop(-1)
-#
-#    with open('./data/ladder/bets.txt', 'r+') as file:
-#        data = file.read()
-#        bets = data.split('\n')
-#        bets.pop(-1)
-#
-#    with open('./data/ladder/wallets.txt', 'r+') as file:
-#        data = file.read()
-#        wallets = data.split('\n')
-#        wallets.pop(-1)
-#
-#    with open('./data/ladder/wallets_activityBonusMessages.txt', 'r+') as file:
-#        data = file.read()
-#        activityBonusMessages = {}
-#        for line in data.split('\n'):
-#            if line != "":
-#                activityBonusMessages[line.split(' - ')[0]] = int(line.split(' - ')[1])
-#
-#    with open('./data/ladder/wallets_activityBonusVCTime.txt', 'r+') as file:
-#        data = file.read()
-#        activityBonusVCTime = {}
-#        for line in data.split('\n'):
-#            if line != "":
-#                activityBonusVCTime[line.split(' - ')[0]] = int(line.split(' - ')[1])
-#
-#    with open('./data/ladder/claimcoins_cooldown.txt', 'r+') as file:
-#        data = file.read()
-#        claimcoinsCooldown = {}
-#        for line in data.split('\n'):
-#            if line != "":
-#                claimcoinsCooldown[line.split(' - ')[0]] = line.split(' - ')[1]
-#
-#    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown
-#
-#leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown = load_data()
+def load_data():
+    # Read files and initialize a list for each one
+    with open('./data/ladder/leaderboard.txt','r+') as file:
+        data = file.read()
+        leaderboard = data.split('\n')
+        leaderboard.pop(-1)
+
+    with open('./data/ladder/activeChallenges.txt','r+') as file:
+        data = file.read()
+        activeChallenges = data.split('\n')
+        activeChallenges.pop(-1)
+
+    with open('./data/ladder/lockedPlayers.txt','r+') as file:
+        data = file.read()
+        locked_players = data.split('\n')
+        locked_players.pop(-1)
+
+    with open('./data/ladder/stats.txt','r+') as file:
+        data = file.read()
+        stats = data.split('\n')
+        stats.pop(-1)
+
+    with open('./data/ladder/streaksLeaderboard.txt', 'r+') as file:
+        data = file.read()
+        streaksLeaderboard = data.split('\n')
+        streaksLeaderboard.pop(-1)
+
+    with open('./data/ladder/cooldowns.txt', 'r+') as file:
+        data = file.read()
+        cooldowns = data.split('\n')
+        cooldowns.pop(-1)
+
+    with open('./data/ladder/bets.txt', 'r+') as file:
+        data = file.read()
+        bets = data.split('\n')
+        bets.pop(-1)
+
+    with open('./data/ladder/wallets.txt', 'r+') as file:
+        data = file.read()
+        wallets = data.split('\n')
+        wallets.pop(-1)
+
+    with open('./data/ladder/wallets_activityBonusMessages.txt', 'r+') as file:
+        data = file.read()
+        activityBonusMessages = {}
+        for line in data.split('\n'):
+            if line != "":
+                activityBonusMessages[line.split(' - ')[0]] = int(line.split(' - ')[1])
+
+    with open('./data/ladder/wallets_activityBonusVCTime.txt', 'r+') as file:
+        data = file.read()
+        activityBonusVCTime = {}
+        for line in data.split('\n'):
+            if line != "":
+                activityBonusVCTime[line.split(' - ')[0]] = int(line.split(' - ')[1])
+
+    with open('./data/ladder/claimcoins_cooldown.txt', 'r+') as file:
+        data = file.read()
+        claimcoinsCooldown = {}
+        for line in data.split('\n'):
+            if line != "":
+                claimcoinsCooldown[line.split(' - ')[0]] = line.split(' - ')[1]
+
+    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown
+
+leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown = load_data()
 
 def set_bot_instance(bot):
     global bot_instance
@@ -116,15 +116,19 @@ async def log(output: str, isError: bool = False):
     
     await channel.send(output)
 
-#def writeToFile(file: str, mylist: list):
-#    with open(f'./data/ladder/{file}.txt', "w") as file:
-#        for entry in mylist:
-#            file.write(entry+'\n')
-#
-#def writeDictToFile(file: str, myDict: dict):
-#    with open(f'./data/ladder/{file}.txt', "w") as file:
-#        for person, extraWallet in myDict.items():
-#            file.write(f"{person} - {extraWallet}\n")
+def writeToFile(file: str, mylist: list):
+    with open(f'./data/ladder/{file}.txt', "w") as file:
+        for entry in mylist:
+            file.write(entry+'\n')
+
+def writeDictToFile(file: str, myDict: dict):
+    with open(f'./data/ladder/{file}.txt', "w") as file:
+        for person, extraWallet in myDict.items():
+            file.write(f"{person} - {extraWallet}\n")
+
+def writeToSupabase():
+    # 
+    return
 
 async def update_ladder(guild):
         channel = guild.get_channel(ladder_channel)
