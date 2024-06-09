@@ -14,9 +14,6 @@ from data.helper_functions import *
 # Load environment variables from .env
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
-url= os.environ.get("SUPABASE_URL")
-key= os.environ.get("SUPABASE_KEY")
-connect_Supabase(url, key)
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)

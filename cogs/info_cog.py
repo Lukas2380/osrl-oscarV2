@@ -6,8 +6,6 @@ from discord import app_commands, TextChannel
 from discord.ui import View, Button
 from data.helper_functions import *
 
-infochannelsTable = supabase.schema("info_tables").table("InfoChannels")
-
 
 class Info_Cog(commands.Cog):
     def __init__(self, bot):

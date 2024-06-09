@@ -4,9 +4,6 @@ from discord import Embed, app_commands
 import asyncio
 from data.helper_functions import *
 
-vcGeneratorTable = supabase.schema("vcgenerator_tables").table("vcGenerators")
-temporaryVCTable = supabase.schema("vcgenerator_tables").table("temporaryVC")
-
 class VCGeneratorCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

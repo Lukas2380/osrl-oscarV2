@@ -21,12 +21,14 @@ class LadderAdmin_cog(commands.Cog):
         if player.bot:
             await interaction.followup.send(embed=Embed(title="Cant add this person to the ladder.", description="This person is a bot and cant be on the ladder.", color="red"))
             return
+        
+        playerID = await get_user_id(interaction.guild, player)
 
         alreadyIsInLadder = False
 
         # Check if player is already in the leaderboard
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
+            if playerID in leaderboardEntry:
                 response = Embed(title="Cant add player", description=f'{player.mention} is already in the ladder', color=red)
                 alreadyIsInLadder = True
                 break
@@ -34,10 +36,10 @@ class LadderAdmin_cog(commands.Cog):
         # Add the player at the desired position
         if not alreadyIsInLadder:
             if position > 0:
-                leaderboard.insert(position-1,str(player.id)) 
+                leaderboard.insert(position-1, playerID) 
                 response=Embed(title="Player added", description=f'{player.mention} added in the {position} position', color=blue)
             elif position == 0:
-                leaderboard.append(str(player.id)) 
+                leaderboard.append(playerID) 
                 response=Embed(title="Player added", description=f'{player.mention} added in the last position', color=blue)
 
             writeToFile('leaderboard', leaderboard)
@@ -51,17 +53,19 @@ class LadderAdmin_cog(commands.Cog):
         await interaction.response.defer()
         response = Embed(title="Error", description=f'Player {player.mention} not recognized.', color=red)
 
+        playerID = await get_user_id(interaction.guild, player)
+
         # Find the player and remove them from the leaderboard
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
-                playerIndex = leaderboard.index(str(player.id))
+            if playerID in leaderboardEntry:
+                playerIndex = leaderboard.index(playerID)
                 leaderboard.pop(playerIndex)
 
                 writeToFile('leaderboard', leaderboard)
 
                 # Remove the active challenge if one with the player is found
                 for challenge in activeChallenges:
-                    if str(player.id) in challenge:
+                    if playerID in challenge:
                         await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                         activeChallenges.remove(challenge)
                         break
@@ -98,31 +102,33 @@ class LadderAdmin_cog(commands.Cog):
         foundPlayerInLeaderboard = False
         alreadyLocked = False
 
+        playerID = await get_user_id(interaction.guild, playerID)
+
         # Search for the player in the leaderboard
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
+            if playerID in leaderboardEntry:
                 foundPlayerInLeaderboard = True
 
                 # Search for the player in the list of already locked players
                 for locked_player in locked_players:
-                    if str(player.id) in locked_player:
+                    if playerID in locked_player:
                         alreadyLocked = True
 
                 # Lock player
                 if not alreadyLocked:
                     for challenge in activeChallenges:
-                        if str(player.id) in challenge:
+                        if playerID in challenge:
                             await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                             activeChallenges.remove(challenge)
 
                     # Remove player from the leaderboard and add them to the locked player list
                     for leaderboardline in leaderboard:
-                        if str(player.id) in leaderboardline:
-                            leaderboardIndex = leaderboard.index(str(player.id))
+                        if playerID in leaderboardline:
+                            leaderboardIndex = leaderboard.index(playerID)
                             leaderboard.pop(leaderboardIndex)
 
                             date = datetime.now().strftime("%x")
-                            locked_players.append(f'{leaderboardIndex+1} - {player.id} - {date}') 
+                            locked_players.append(f'{leaderboardIndex+1} - {playerID} - {date}') 
 
                     writeToFile('lockedPlayers', locked_players)
                     writeToFile('leaderboard', leaderboard)
@@ -144,15 +150,17 @@ class LadderAdmin_cog(commands.Cog):
     async def unlock(self, interaction, player: discord.User):
         await interaction.response.defer()
         response = Embed(title="Error", description=f"Didnt find {player.mention} in the locked player list", color=blue)
+
+        playerID = await get_user_id(interaction.guild, player)
         
         # Find the player in the locked player list
         for locked_player in locked_players:
-            if str(player.id) in locked_player:
+            if playerID in locked_player:
                 locked_players.remove(locked_player)
 
                 # Insert them into the leaderboard
                 rank, _, _ = locked_player.split(' - ') 
-                leaderboard.insert(int(rank)-1, str(player.id)) 
+                leaderboard.insert(int(rank)-1, playerID) 
 
                 writeToFile('lockedPlayers', locked_players)
                 writeToFile('leaderboard', leaderboard)
@@ -169,9 +177,11 @@ class LadderAdmin_cog(commands.Cog):
         await interaction.response.defer()
         noActiveChallenge = True
 
+        playerID = await get_user_id(interaction.guild, player)
+
         # Find the challenge and remove it
         for challenge in activeChallenges:
-            if str(player.id) in challenge:
+            if playerID in challenge:
                 noActiveChallenge = False
                 await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
                 activeChallenges.remove(challenge)
@@ -191,10 +201,11 @@ class LadderAdmin_cog(commands.Cog):
     async def removeCooldown(self, interaction, player: discord.User):
         await interaction.response.defer()
         hasnoCooldown = True
+        playerID = await get_user_id(interaction.guild, player)
 
         # Find the cooldown for the person and remove it
         for cooldown in cooldowns:
-            if str(player.id) in cooldown:
+            if playerID in cooldown:
                 hasnoCooldown = False
                 cooldowns.remove(cooldown)
 

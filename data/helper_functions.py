@@ -3,11 +3,19 @@ import socket
 import typing
 import discord
 import os
-from supabase import create_client
+from supabase import create_client 
+from dotenv import load_dotenv
 
-def connect_Supabase(url, key):
-    global supabase
-    supabase = create_client(url, key)
+load_dotenv()
+url= os.environ.get("SUPABASE_URL")
+key= os.environ.get("SUPABASE_KEY")
+supabase = create_client(url, key)
+
+infochannelsTable = supabase.schema("info_tables").table("InfoChannels")
+vcGeneratorTable = supabase.schema("vcgenerator_tables").table("vcGenerators")
+temporaryVCTable = supabase.schema("vcgenerator_tables").table("temporaryVC")
+usersTable = supabase.schema("public").table("users")
+
 
 red = 0xFF5733
 blue = 0x0CCFFF
@@ -348,24 +356,37 @@ def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "gree
     return output
 
 async def get_user_id(guild, person):
-        if person.startswith("<@"):
-            person = re.search(r'\d+', person).group()
+        userID = None
 
-        attributes_to_search = ['name', 'nick', 'display_name', 'id']
-        for attribute in attributes_to_search:
-            try:
-                if attribute == "id":
-                    try:
-                        person = int(person)
-                    except:
-                        pass
-                user = discord.utils.get(guild.members, **{attribute: person})
-                if user:
-                    return str(user.id)  # Found user, return user ID
-            except Exception as e:
-                await log(f"Exception: {e}")
+        if person.id:
+            userID = person.id
+        else:
+            if person is str:
+                if person.startswith("<@"):
+                    userID = re.search(r'\d+', person).group()
 
-        return person
+            attributes_to_search = ['name', 'nick', 'display_name', 'id']
+            for attribute in attributes_to_search:
+                try:
+                    if attribute == "id":
+                        try:
+                            person = int(person)
+                        except:
+                            pass
+                    user = discord.utils.get(guild.members, **{attribute: person})
+                    if user:
+                        userID = user.id  # Found user, return user ID
+                except Exception as e:
+                    await log(f"Exception: {e}")
+
+        # Insert user into users table
+        try:
+            usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
+            usersTable.update({"user_name": guild.get_member(int(userID)).display_name}).eq("user_id", userID).execute()
+        except Exception as e:
+            print(e)
+
+        return str(userID)
     
 async def get_username(guild, person):
     try:

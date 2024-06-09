@@ -223,9 +223,12 @@ class Ladderbetting_cog(commands.Cog):
     async def bet(self, interaction, player: discord.User, amount: int):
         await interaction.response.defer()
         alreadyBetOnOtherSide = False
-        coinsInWallet = getWallet(str(interaction.user.id))
+        playerID = await get_user_id(interaction.guild, player)
+        userID = await get_user_id(interaction.guild, interaction.user)
 
-        if player.id == interaction.user.id:
+        coinsInWallet = getWallet(userID)
+
+        if playerID == userID:
             response = Embed(title="You cant place this bet!", description=f'{player.mention}, it isnt allowed to bet on yourself!', color=red)
             await interaction.followup.send(embed=response)
             return
@@ -233,9 +236,9 @@ class Ladderbetting_cog(commands.Cog):
         otherPlayer = ""
 
         for challenge in activeChallenges:
-            if str(player.id) in challenge:
+            if playerID in challenge:
                 player1, player2, _, _ = challenge.split(' - ')
-                if str(player.id) == player1:
+                if playerID == player1:
                     otherPlayer = player2
                 else:
                     otherPlayer = player1
@@ -247,22 +250,22 @@ class Ladderbetting_cog(commands.Cog):
             return
 
         for bet in bets:
-            if f'{otherPlayer} - {interaction.user.id}' in bet:
+            if f'{otherPlayer} - {userID}' in bet:
                 alreadyBetOnOtherSide = True
                 response = Embed(title="You cant place this bet!", description=f'{interaction.user.mention}, you cant bet on both sides of a challenge.', color=red)
 
         if not alreadyBetOnOtherSide:
             response = Embed(title="Player not found", description=f'Maybe {player.mention} is not on the ladder or currently not in a challenge', color=red)
             for challenge in activeChallenges:
-                if str(interaction.user.id) in challenge and str(player.id) in challenge:
+                if userID in challenge and playerID in challenge:
                     response = Embed(title="You cant place this bet!", description=f'{interaction.user.mention}, it isnt allowed to bet on a challenge which you are part of!', color=red)
-                elif str(player.id) in challenge:
+                elif playerID in challenge:
                     if int(coinsInWallet) == 0:
                         response = Embed(title="You cant place this bet!", description=f'{interaction.user.mention}, you dont have any coins left in your wallet!', color=red)
                     else:
                         if amount > int(coinsInWallet):
                             amount = int(coinsInWallet)
-                        coinsBet = await self.placeBet(interaction, str(interaction.user.id), str(player.id), amount)
+                        coinsBet = await self.placeBet(interaction, userID, playerID, amount)
                         response = Embed(title="Bet placed", description=f'{interaction.user.mention} now bets {str(coinsBet)} coins on {player.mention}')
                     break
 
@@ -283,7 +286,7 @@ class Ladderbetting_cog(commands.Cog):
             await interaction.followup.send(embed=Embed(title="Cant get this wallet", description="This person is a bot and doesnt have a wallet.", color="red"))
             return
 
-        user = str(player.id)
+        user = await get_user_id(interaction.guild, player)
         walletAmount = getWallet(user)
         userName = await get_username(interaction.guild, user)
         currentBets = "No current bets."
@@ -324,14 +327,15 @@ class Ladderbetting_cog(commands.Cog):
         totalCoinsBetOnPlayer = 0
         betsOnOtherPlayer = ""
         totalCoinsBetOnOtherPlayer = 0
+        playerID = await get_user_id(interaction.guild, player)
 
         noChallengeFound = True
         noBetsFound = True
 
         for challenge in activeChallenges:
-            if str(player.id) in challenge:
+            if playerID in challenge:
                 noChallengeFound = False
-                if str(player.id) in challenge.split(" - ")[0]:
+                if playerID in challenge.split(" - ")[0]:
                     otherplayer = challenge.split(" - ")[1]
                 else:
                     otherplayer = challenge.split(" - ")[0]
@@ -344,11 +348,11 @@ class Ladderbetting_cog(commands.Cog):
 
         for bet in bets:
             playerId, userId, betAmount, timeBet = bet.split(' - ')
-            if str(player.id) in playerId or otherplayer in playerId:
+            if playerID in playerId or otherplayer in playerId:
                 noBetsFound = False
                 userName = await get_username(interaction.guild, userId)
 
-                if str(player.id) in playerId:
+                if playerID in playerId:
                     if datetime.strptime(timeBet, "%Y-%m-%d %H:%M:%S") + timedelta(minutes=10) > datetime.now():
                         betsOnPlayer += "🔴" + coloriseString(f"{userName} - {betAmount}", "red") + "\t\n"
                     else:
@@ -366,7 +370,7 @@ class Ladderbetting_cog(commands.Cog):
             await interaction.followup.send(embed=response)
             return
 
-        playerUsername = await get_username(interaction.guild, str(player.id))
+        playerUsername = await get_username(interaction.guild, playerID)
         otherPlayerUsername = await get_username(interaction.guild, otherplayer)
         otherplayerUser = interaction.guild.get_member(int(otherplayer))
         totalCoinsBet = totalCoinsBetOnPlayer + totalCoinsBetOnOtherPlayer
@@ -430,7 +434,7 @@ class Ladderbetting_cog(commands.Cog):
     @app_commands.command(name="claim-coins", description="With this command you can claim your daily coins for betting on the 1s ladder.")
     async def claim_coins(self, interaction):
         await interaction.response.defer()
-        user_id = str(interaction.user.id)
+        user_id = await get_user_id(interaction.guild, interaction.user)
         current_time = datetime.now()
 
         # Check the last claim time for the user
@@ -497,7 +501,7 @@ class Ladderbetting_cog(commands.Cog):
     async def on_message(self, message):
         # Add to activity bonus
         if message.author.id != self.bot.user.id:
-            user_id = str(message.author.id)
+            user_id = await get_user_id(bot_instance.get_guild(osrl_Server), message.author)
             current_time = time.time()
 
             # Check if the user has a last bonus time
@@ -510,29 +514,31 @@ class Ladderbetting_cog(commands.Cog):
                 if time_difference < self.cooldown_period:
                     return
 
-            activityBonusMessages.setdefault(str(message.author.id), 0)
-            if activityBonusMessages[str(message.author.id)] < 25:
-                activityBonusMessages[str(message.author.id)] += 2
-                if activityBonusMessages[str(message.author.id)] > 25:
-                    activityBonusMessages[str(message.author.id)] = 25
-                await log(f"Added 2 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
+            activityBonusMessages.setdefault(user_id, 0)
+            if activityBonusMessages[user_id] < 25:
+                activityBonusMessages[user_id] += 2
+                if activityBonusMessages[user_id] > 25:
+                    activityBonusMessages[user_id] = 25
+                await log(f"Added 2 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[user_id]}")
                 writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
 
             self.lastBonusTime[user_id] = current_time
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        guild = bot_instance.get_guild(osrl_Server)
+        memberID = await get_user_id(guild, member)
         # If a user joins a voice channel
         if before.channel is None and after.channel is not None:
             if after.channel.id == 1149912179244531772:
                 return
-            self.voiceEntryTime[member.id] = time.time()
+            self.voiceEntryTime[memberID] = time.time()
 
         # If a user leaves a voice channel
         if before.channel is not None and after.channel is None:
             if before.channel.id == 1149912179244531772:
                 return
-            entry_time = self.voiceEntryTime.get(member.id)
+            entry_time = self.voiceEntryTime.get(memberID)
             if entry_time:
                 # Calculate the time spent in the voice channel
                 time_spent = time.time() - entry_time
@@ -544,17 +550,17 @@ class Ladderbetting_cog(commands.Cog):
                 reward = int(time_spent * reward_rate)
                 
                 # Add the reward to the user's activity bonus wallet
-                activityBonusVCTime.setdefault(str(member.id), 0)
-                if activityBonusVCTime[str(member.id)] + reward < 25:
-                    activityBonusVCTime[str(member.id)] += reward
+                activityBonusVCTime.setdefault(memberID, 0)
+                if activityBonusVCTime[memberID] + reward < 25:
+                    activityBonusVCTime[memberID] += reward
                     await log(f"Added {reward} coins to {member.display_name}'s wallet for spending {time_spent / 60:.2f} minutes in voice channels. Total activity coins: {activityBonusVCTime[str(member.id)]}")
                 else:
-                    activityBonusVCTime[str(member.id)] = 25
-                    await log(f"Set {member.display_name}'s wallet to {activityBonusVCTime[str(member.id)]} for being in vc. ")
+                    activityBonusVCTime[memberID] = 25
+                    await log(f"Set {member.display_name}'s wallet to {activityBonusVCTime[memberID]} for being in vc. ")
                 writeDictToFile("wallets_activityBonusVCTime", activityBonusVCTime)
                 
                 # Reset the entry time
-                del self.voiceEntryTime[member.id]
+                del self.voiceEntryTime[memberID]
 
 def getWallet(user):
     userInWallets = False

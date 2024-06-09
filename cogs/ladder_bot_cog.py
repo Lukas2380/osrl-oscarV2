@@ -199,7 +199,7 @@ class LadderBot_cog(commands.Cog):
     @app_commands.command(name="show-playerinfo", description="Get all the ladder information for one player")
     async def player_info(self, interaction, player: discord.User):
         await interaction.response.defer()
-        playerID = str(player.id)
+        playerID = await get_user_id(interaction.guild, player)
         playerIsLocked = False
         lockedStatus = ""
         playerRank = "/"
@@ -287,6 +287,8 @@ class LadderBot_cog(commands.Cog):
         playerAboveAlreadyInChallenge = False
         playerIsFirst = False
         player = interaction.user
+        playerID = await get_user_id(interaction.guild, player)
+
 
         # Check if player has a cooldown
         response = self.handleCooldowns(player)
@@ -294,9 +296,9 @@ class LadderBot_cog(commands.Cog):
             return await interaction.followup.send(embed=response)
 
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
+            if playerID in leaderboardEntry:
                 playerIsInLeaderboard = True
-                playerRank = leaderboard.index(str(player.id))
+                playerRank = leaderboard.index(playerID)
 
                 if playerRank == 0:
                     playerIsFirst = True
@@ -306,7 +308,7 @@ class LadderBot_cog(commands.Cog):
                 
                 # Check if anyone is already in a challenge
                 for activeChallenge in activeChallenges:
-                    if str(player.id) in activeChallenge:
+                    if playerID in activeChallenge:
                         playerAlreadyInChallenge = True
                         response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=red)
                         break
@@ -320,7 +322,7 @@ class LadderBot_cog(commands.Cog):
                     date = datetime.now() + timedelta(days=7)
                     date = date.strftime("%x")
                     
-                    activeChallenges.append(f'{str(player.id)} - {playerAboveId} - {date} - false') 
+                    activeChallenges.append(f'{playerID} - {playerAboveId} - {date} - false') 
                     writeToFile('activeChallenges', activeChallenges)
 
                     response = Embed(title="Challenge scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(playerAboveId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
@@ -338,6 +340,7 @@ class LadderBot_cog(commands.Cog):
     def handleCooldowns(self, player):
         cooldownsToRemove = []
         response = ""
+
         # This is called for the player who put in /challenge or /challenge-guardian
         for cooldown in cooldowns:
             if str(player.id) in cooldown:
@@ -375,6 +378,8 @@ class LadderBot_cog(commands.Cog):
         playerAlreadyInChallenge = False
         guardianAlreadyInChallenge = False        
         player = interaction.user
+        playerID = await get_user_id(interaction.guild, player)
+
 
         # Check if player has a cooldown
         response = self.handleCooldowns(player=player)
@@ -398,11 +403,11 @@ class LadderBot_cog(commands.Cog):
         #guardian_positions = [i for i in range(10, len(leaderboard), 5)] # 3,5 are not guardians anymore
 
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
+            if playerID in leaderboardEntry:
                 playerIsInLeaderboard = True
 
                 # Get the next guardian in the ladder
-                playerRank = leaderboard.index(str(player.id))
+                playerRank = leaderboard.index(playerID)
                 nearest_guardian = next((guardian_pos for guardian_pos in sorted(guardian_positions, reverse=True) if guardian_pos <= playerRank), None) 
 
                 if nearest_guardian is not None:
@@ -410,7 +415,7 @@ class LadderBot_cog(commands.Cog):
 
                     # Check if anyone is already in a challenge
                     for activeChallenge in activeChallenges:
-                        if str(player.id) in activeChallenge:
+                        if playerID in activeChallenge:
                             playerAlreadyInChallenge = True
                             response = Embed(title="Error", description="Don't be scared, you're already in a challenge.", color=red)
                             break
@@ -424,7 +429,7 @@ class LadderBot_cog(commands.Cog):
                         date = datetime.now() + timedelta(days=7)
                         date = date.strftime("%x")
 
-                        activeChallenges.append(f'{str(player.id)} - {guardianId} - {date} - true') 
+                        activeChallenges.append(f'{playerID} - {guardianId} - {date} - true') 
                         writeToFile('activeChallenges', activeChallenges)
 
                         response = Embed(title="Guardian Challenge Scheduled", description=f'Challenge between: \n\n{player.mention} and {interaction.guild.get_member(int(guardianId)).mention} \n\nis scheduled to be completed by: {date}', color=blue)
@@ -447,9 +452,11 @@ class LadderBot_cog(commands.Cog):
 
         player = interaction.user
         noActiveChallenge = True
+        playerID = await get_user_id(interaction.guild, player)
+
 
         for challenge in activeChallenges:
-            if str(player.id) in challenge:
+            if playerID in challenge:
                 noActiveChallenge = False
 
                 challenger = challenge.split(' - ')[0]
@@ -468,7 +475,7 @@ class LadderBot_cog(commands.Cog):
                 winner = None
                 loser = None
 
-                if str(player.id) == challenger:
+                if playerID == challenger:
                     if result == "W": # Player is challenger and won
                         response = Embed(title="Results accepted", description=f'Congratulations {player.mention}! You have won the challenge!', color=blue)
                         self.movePlayerinLeaderboard(challenger, leaderboard.index(challenged))
@@ -545,17 +552,18 @@ class LadderBot_cog(commands.Cog):
         await interaction.response.defer()
         alreadyIsInLadder = False
         player = interaction.user
+        playerID = await get_user_id(interaction.guild, player)
 
         # Check if player is already in the leaderboard
         for leaderboardEntry in leaderboard:
-            if str(player.id) in leaderboardEntry:
+            if playerID in leaderboardEntry:
                 response = Embed(title="Cant join the ladder", description=f'{player.mention}, you are already in the ladder', color=red)
                 alreadyIsInLadder = True
                 break
 
         if not alreadyIsInLadder:
             # Add player to the leaderboard
-            leaderboard.append(str(player.id)) 
+            leaderboard.append(playerID) 
             writeToFile('leaderboard', leaderboard)
             
             response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
