@@ -102,7 +102,7 @@ class LadderAdmin_cog(commands.Cog):
         foundPlayerInLeaderboard = False
         alreadyLocked = False
 
-        playerID = await get_user_id(interaction.guild, playerID)
+        playerID = await get_user_id(interaction.guild, player)
 
         # Search for the player in the leaderboard
         for leaderboardEntry in leaderboard:

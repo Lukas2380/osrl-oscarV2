@@ -16,7 +16,6 @@ vcGeneratorTable = supabase.schema("vcgenerator_tables").table("vcGenerators")
 temporaryVCTable = supabase.schema("vcgenerator_tables").table("temporaryVC")
 usersTable = supabase.schema("public").table("users")
 
-
 red = 0xFF5733
 blue = 0x0CCFFF
 green = 0x73ff00

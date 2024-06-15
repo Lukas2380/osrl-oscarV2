@@ -247,7 +247,6 @@ class Info_Cog(commands.Cog):
 
         await channel.purge(limit=6)
 
-        #region RolesIntroEmbed
         with open('./data/info/rolesintro.txt', 'r') as file:
             rolesintro = file.read()
 
@@ -262,7 +261,6 @@ class Info_Cog(commands.Cog):
 
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
-        #endregion
 
         for category, data in self.roles_config.items():
             title = data["title"]
