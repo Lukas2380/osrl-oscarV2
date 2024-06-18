@@ -46,7 +46,7 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
 async def on_error(event, *args, **kwargs):
     error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
     error_message += traceback.format_exc()
-    await log(error_message, isError = True)
+    await print(error_message)
 
 @bot.event
 async def on_ready():
@@ -104,9 +104,9 @@ async def on_tree_error(interaction: discord.Interaction, error: app_commands.Ap
             # Log the error
             error_message = f"An error occurred in command tree: {error}\n\n"
             error_message += traceback.format_exc()
-            await log(error_message, isError = True)
+            await print(error_message)
     except Exception as e:
-        await log(f"An error occurred while handling a command tree error: {e}", isError = True)
+        await print(f"An error occurred while handling a command tree error: {e}")
 bot.tree.on_error = on_tree_error
 
 async def main():

@@ -221,7 +221,6 @@ class LadderAdmin_cog(commands.Cog):
 
     @app_commands.command(name="admin-updatetxt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
-        writeToSupabase()
 
         # This goes through all the txt files and tries to change the usernames to user ids
         await interaction.response.defer()

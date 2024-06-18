@@ -12,7 +12,7 @@ class Info_Cog(commands.Cog):
         self.bot = bot
 
     # Fetch the channel IDs from the InfoChannels table
-    response = infochannelsTable.select("channel_id").execute()
+    response = infoChannelsTable.select("channel_id").execute()
     channel_ids = [record["channel_id"] for record in response.data]
     rulesChannel, faqChannel, anonrepChannel, servdirChannel, servstaffChannel, ladderrulesChannel, ladderadmininfoChannel, ladderinfoChannel, rolesChannel = channel_ids[:9]
 
@@ -41,7 +41,7 @@ class Info_Cog(commands.Cog):
         # Update each channel's ID in the database
         try:
             for channel_name, channel_id in channels_data.items():
-                infochannelsTable.update({"channel_id": channel_id}).eq("channel_Name", channel_name).execute()
+                infoChannelsTable.update({"channel_id": channel_id}).eq("channel_name", channel_name).execute()
         except Exception as e:
             print(e)
 

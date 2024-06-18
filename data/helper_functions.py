@@ -11,10 +11,18 @@ url= os.environ.get("SUPABASE_URL")
 key= os.environ.get("SUPABASE_KEY")
 supabase = create_client(url, key)
 
-infochannelsTable = supabase.schema("info_tables").table("InfoChannels")
-vcGeneratorTable = supabase.schema("vcgenerator_tables").table("vcGenerators")
-temporaryVCTable = supabase.schema("vcgenerator_tables").table("temporaryVC")
-usersTable = supabase.schema("public").table("users")
+# Define references to each table
+usersTable = supabase.table("users")
+infoChannelsTable = supabase.table("info_channels")
+vcGeneratorsTable = supabase.table("vcGenerators")
+temporaryVCTable = supabase.table("temporaryVC")
+leaderboardTable = supabase.table("leaderboard")
+activeChallengesTable = supabase.table("activeChallenges")
+lockedPlayersTable = supabase.table("lockedPlayers")
+cooldownsTable = supabase.table("cooldowns")
+statsTable = supabase.table("stats")
+betsTable = supabase.table("bets")
+walletsTable = supabase.table("wallets")
 
 red = 0xFF5733
 blue = 0x0CCFFF
@@ -133,10 +141,6 @@ def writeDictToFile(file: str, myDict: dict):
         for person, extraWallet in myDict.items():
             file.write(f"{person} - {extraWallet}\n")
 
-def writeToSupabase():
-    # 
-    return
-
 async def update_ladder(guild):
         channel = guild.get_channel(ladder_channel)
 
@@ -158,24 +162,18 @@ async def update_ladder(guild):
 async def get_activeChallenges(guild):
         # Standard output if no one is on the active challenges list
         active_challenges = "No active challenges"
-        
-        if len(activeChallenges) > 0:
+
+        active_challenges = activeChallengesTable.select("*").execute()
+
+        if len(active_challenges) > 0:
             # Clear the output and write the active challenges
             active_challenges = ""
 
             # Get the Mr. Moneybags
-            highest_wallet = -float('inf')
-            mr_moneybags = None
-            
-            # Iterate through wallets list to find the user with the highest wallet
-            for wallet in wallets:
-                user_id, user_wallet = wallet.split(" - ")
-                user_wallet = int(user_wallet)
-                if user_wallet > highest_wallet:
-                    highest_wallet = user_wallet
-                    mr_moneybags = user_id
+            result = await supabase.from_("wallets").select("*").order("coins").limit(1).execute()
+            mr_moneybags = result['data']
 
-            for challenge in activeChallenges:
+            for challenge in active_challenges:
                     symbol = "⚔️"
                     firstPlayerColor = "red"
                     secondPlayerColor = "red"
@@ -194,7 +192,7 @@ async def get_activeChallenges(guild):
                         symbol = "🗡️"
                         secondPlayerColor = "blue"
 
-                    if secondPlayerID in leaderboard[0]:
+                    if secondPlayerID in leaderboardTable.select("user_id").eq("position", 1):
                         secondPlayerColor = "gold"
 
                     if len(firstPlayer+secondPlayer) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
@@ -355,38 +353,35 @@ def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "gree
     return output
 
 async def get_user_id(guild, person):
-        userID = None
+    userID = None
 
-        if person.id:
+    try:
+        if isinstance(person, (discord.Member, discord.User)):
             userID = person.id
+        elif isinstance(person, str):
+            if person.startswith("<@") and person.endswith(">"):
+                person = person.strip("<@!>")
+            userID = int(person)
         else:
-            if person is str:
-                if person.startswith("<@"):
-                    userID = re.search(r'\d+', person).group()
+            raise ValueError("Invalid person type")
 
-            attributes_to_search = ['name', 'nick', 'display_name', 'id']
-            for attribute in attributes_to_search:
-                try:
-                    if attribute == "id":
-                        try:
-                            person = int(person)
-                        except:
-                            pass
-                    user = discord.utils.get(guild.members, **{attribute: person})
-                    if user:
-                        userID = user.id  # Found user, return user ID
-                except Exception as e:
-                    await log(f"Exception: {e}")
+        # Insert or update user in users table
+        if userID:
+            try:
+                usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
+                
+                username = await get_username(guild, userID)
+                if username:
+                    usersTable.update({"user_name": username}).eq("user_id", userID).execute()
 
-        # Insert user into users table
-        try:
-            usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
-            usersTable.update({"user_name": guild.get_member(int(userID)).display_name}).eq("user_id", userID).execute()
-        except Exception as e:
-            print(e)
-
-        return str(userID)
+            except Exception as e:
+                print(f"Error executing SQL operation: {e}")
     
+    except Exception as e:
+        print(f"Error fetching user ID: {e}")
+
+    return str(userID)
+
 async def get_username(guild, person):
     try:
         username = guild.get_member(int(person)).display_name
