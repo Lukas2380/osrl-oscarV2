@@ -143,27 +143,19 @@ class Info_Cog(commands.Cog):
         await interaction.followup.send(embed=response)
         
     @app_commands.command(name="info-servdir", description="Resend the servdir embed")
-    async def servdir(self, interaction):
+    async def servdir(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        channel = self.bot.get_channel(self.servdirChannel)
-        if not channel:
+        channel_id = self.channel_ids.get("servdirChannel")
+        if not channel_id:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
+        channel = self.bot.get_channel(channel_id)
         await channel.purge(limit=1)
         
-        with open('./data/info/welcome.txt', 'r') as file:
-            welcome = file.read()
-        with open('./data/info/rlconnect.txt', 'r') as file:
-            rlconnect = file.read()
-        with open('./data/info/tmsearch.txt', 'r') as file:
-            tmsearch = file.read()
-        with open('./data/info/coaching.txt', 'r') as file:
-            coaching = file.read()
-        servdirec = discord.Embed(title='Old School Server Directory', color=infoEmbedColor)
-        servdirec.add_field(name='Welcome', value=welcome, inline=False)
-        servdirec.add_field(name='RL Connect', value=rlconnect, inline=False)
-        servdirec.add_field(name='Teammate Search', value=tmsearch, inline=False)
-        servdirec.add_field(name='Coaches Corner', value=coaching, inline=False)
+        with open('./data/info/servdir.txt', 'r') as file:
+            servdir = file.read()
+        
+        servdirec = discord.Embed(title='Old School Server Directory', description=servdir, color=infoEmbedColor)
         servdirec.set_footer(text=self.footerText)
         await channel.send(embed=servdirec)
         response = discord.Embed(title='Embed Sent')
