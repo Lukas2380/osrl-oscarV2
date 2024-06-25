@@ -143,13 +143,12 @@ class Info_Cog(commands.Cog):
         await interaction.followup.send(embed=response)
         
     @app_commands.command(name="info-servdir", description="Resend the servdir embed")
-    async def servdir(self, interaction: discord.Interaction):
+    async def servdir(self, interaction):
         await interaction.response.defer()
-        channel_id = self.channel_ids.get("servdirChannel")
-        if not channel_id:
+        channel = self.bot.get_channel(self.servdirChannel)
+        if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
         
-        channel = self.bot.get_channel(channel_id)
         await channel.purge(limit=1)
         
         with open('./data/info/servdir.txt', 'r') as file:
