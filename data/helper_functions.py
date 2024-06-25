@@ -14,6 +14,7 @@ supabase = create_client(url, key)
 # Define references to each table
 usersTable = supabase.table("users")
 infoChannelsTable = supabase.table("info_channels")
+infoTextTable = supabase.table("info_text")
 vcGeneratorsTable = supabase.table("vcGenerators")
 temporaryVCTable = supabase.table("temporaryVC")
 leaderboardTable = supabase.table("leaderboard")
@@ -44,73 +45,6 @@ else:
 
 bot_instance = None
 
-def load_data():
-    # Read files and initialize a list for each one
-    with open('./data/ladder/leaderboard.txt','r+') as file:
-        data = file.read()
-        leaderboard = data.split('\n')
-        leaderboard.pop(-1)
-
-    with open('./data/ladder/activeChallenges.txt','r+') as file:
-        data = file.read()
-        activeChallenges = data.split('\n')
-        activeChallenges.pop(-1)
-
-    with open('./data/ladder/lockedPlayers.txt','r+') as file:
-        data = file.read()
-        locked_players = data.split('\n')
-        locked_players.pop(-1)
-
-    with open('./data/ladder/stats.txt','r+') as file:
-        data = file.read()
-        stats = data.split('\n')
-        stats.pop(-1)
-
-    with open('./data/ladder/streaksLeaderboard.txt', 'r+') as file:
-        data = file.read()
-        streaksLeaderboard = data.split('\n')
-        streaksLeaderboard.pop(-1)
-
-    with open('./data/ladder/cooldowns.txt', 'r+') as file:
-        data = file.read()
-        cooldowns = data.split('\n')
-        cooldowns.pop(-1)
-
-    with open('./data/ladder/bets.txt', 'r+') as file:
-        data = file.read()
-        bets = data.split('\n')
-        bets.pop(-1)
-
-    with open('./data/ladder/wallets.txt', 'r+') as file:
-        data = file.read()
-        wallets = data.split('\n')
-        wallets.pop(-1)
-
-    with open('./data/ladder/wallets_activityBonusMessages.txt', 'r+') as file:
-        data = file.read()
-        activityBonusMessages = {}
-        for line in data.split('\n'):
-            if line != "":
-                activityBonusMessages[line.split(' - ')[0]] = int(line.split(' - ')[1])
-
-    with open('./data/ladder/wallets_activityBonusVCTime.txt', 'r+') as file:
-        data = file.read()
-        activityBonusVCTime = {}
-        for line in data.split('\n'):
-            if line != "":
-                activityBonusVCTime[line.split(' - ')[0]] = int(line.split(' - ')[1])
-
-    with open('./data/ladder/claimcoins_cooldown.txt', 'r+') as file:
-        data = file.read()
-        claimcoinsCooldown = {}
-        for line in data.split('\n'):
-            if line != "":
-                claimcoinsCooldown[line.split(' - ')[0]] = line.split(' - ')[1]
-
-    return leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown
-
-leaderboard, activeChallenges, locked_players, stats, streaksLeaderboard, cooldowns, bets, wallets, activityBonusMessages, activityBonusVCTime, claimcoinsCooldown = load_data()
-
 def set_bot_instance(bot):
     global bot_instance
     bot_instance = bot
@@ -131,16 +65,6 @@ async def log(output: str, isError: bool = False):
     
     await channel.send(output)
 
-def writeToFile(file: str, mylist: list):
-    with open(f'./data/ladder/{file}.txt', "w") as file:
-        for entry in mylist:
-            file.write(entry+'\n')
-
-def writeDictToFile(file: str, myDict: dict):
-    with open(f'./data/ladder/{file}.txt', "w") as file:
-        for person, extraWallet in myDict.items():
-            file.write(f"{person} - {extraWallet}\n")
-
 async def update_ladder(guild):
         channel = guild.get_channel(ladder_channel)
 
@@ -160,173 +84,32 @@ async def update_ladder(guild):
             await log("Error: Channel not found.", isError=True)
 
 async def get_activeChallenges(guild):
-        # Standard output if no one is on the active challenges list
-        active_challenges = "No active challenges"
+    # Standard output if no active challenges are found
+    active_challenges = "No active challenges"
 
-        active_challenges = activeChallengesTable.select("*").execute()
+    # Your logic here to fetch and process active challenges
 
-        if len(active_challenges) > 0:
-            # Clear the output and write the active challenges
-            active_challenges = ""
-
-            # Get the Mr. Moneybags
-            result = await supabase.from_("wallets").select("*").order("coins").limit(1).execute()
-            mr_moneybags = result['data']
-
-            for challenge in active_challenges:
-                    symbol = "⚔️"
-                    firstPlayerColor = "red"
-                    secondPlayerColor = "red"
-                    # Get the playernames, playerpositions and usernames of the players
-                    firstPlayerID, secondPlayerID, date, isGuardianChal  = challenge.split(" - ") # ignore the date and if it is a guardian challenge 
-                    ##firstPlayerPosition = leaderboard.index(firstPlayer) + 1 # !for positioning if wanted
-                    firstPlayer = await get_username(guild, firstPlayerID)
-                    secondPlayer = await get_username(guild, secondPlayerID)
-
-                    if mr_moneybags == firstPlayerID:
-                        firstPlayerColor = "green"
-                    elif mr_moneybags == secondPlayerID:
-                        secondPlayerColor = "green"
-
-                    if isGuardianChal == "true":
-                        symbol = "🗡️"
-                        secondPlayerColor = "blue"
-
-                    if secondPlayerID in leaderboardTable.select("user_id").eq("position", 1):
-                        secondPlayerColor = "gold"
-
-                    if len(firstPlayer+secondPlayer) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
-                        firstPlayer = firstPlayer[:17]
-                        secondPlayer = secondPlayer[:17]
-
-                    firstPlayer = coloriseString(firstPlayer, firstPlayerColor)
-                    secondPlayer = coloriseString(secondPlayer, secondPlayerColor)
-
-                    # Write and format the active challenges
-                    active_challenges += f"{date}: {firstPlayer}{' '* (14 - len(firstPlayer))} {symbol} {secondPlayer}{' '* (14 - len(secondPlayer))}\n"
-        
-        return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{active_challenges}```")
-
+    return f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{active_challenges}```"
 
 async def get_ladder(guild):
-        # Standard output if no one is on the ladder
-        ladder_table = 'No one on the ladder'
+    # Standard output if no leaderboard data is available
+    ladder_table = "No one on the ladder"
 
-        if len(leaderboard) > 0:
-            # Clear the output and write the ladder
-            ladder_table = ""
-            rank = 0
-            mr_moneybags = await assign_mr_moneybags_role(guild)
+    # Your logic here to fetch and process the leaderboard
 
-            for person in leaderboard:
-                symbol = ''
-                rank += 1
-
-                # Write and format the ladder
-                username = await get_username(guild, person)
-                makeColor = ""
-
-                # Check if the person is in the activeChallenges list
-                for element in activeChallenges:
-                    # Different symbol if they are in a guardian challenge (element.split(" - "):  first person is the attacker, second the defender)
-                    if person in element.split(" - ")[0]:
-                        makeColor = "red"
-                        if element.split(" - ")[3] == "true":
-                            symbol = "🗡️"
-                        else:
-                            symbol = "⚔️"
-                    elif person in element.split(" - ")[1]:
-                        makeColor = "red"
-                        if element.split(" - ")[3] == "true":
-                            symbol = "🗡️"
-                        else:
-                            symbol = "⚔️"
-
-                lst = [3] + [i for i in range(5, len(leaderboard)+1, 5)]
-                if (leaderboard.index(person) + 1) in lst:
-                    symbol += "🛡️"
-                    makeColor = "blue"
-
-                if person == mr_moneybags:
-                    symbol += "💰"
-                    makeColor = "green"
-
-                if rank == 1:
-                    symbol += "👑"
-                    makeColor = "gold"
-
-                username = coloriseString(username, makeColor)
-
-                if symbol != "":
-                    symbol = f"[{symbol}]"
-
-                ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
-
-        return(f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```")
+    return f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```"
 
 async def get_wallets(guild):
+    # Standard output if no wallet data is available
     walletOutput = "No wallets found"
 
-    if len(wallets) > 0:
-        walletOutput = ""
-        # Step 1: Split the list and sort by coins in descending order
-        sorted_wallets = sorted((entry.split(' - ') for entry in wallets if str(bot_instance.user.id) not in entry), key=lambda x: int(x[1]), reverse=True)
-        # Step 3: Take top 20 entries
-        top_20_wallets = sorted_wallets[:20]
-        # Step 4: Format the output string
-        for userId, coins in top_20_wallets:
-            username = await get_username(guild, userId)
-            if userId in top_20_wallets[0] and userId in leaderboard[0]:
-                username = "[👑💰] " + coloriseString(username, "green")
-            elif userId in top_20_wallets[0]:
-                username = "[💰] " + coloriseString(username, "green")
-            elif userId in leaderboard[0]:
-                username = "[👑] " + coloriseString(username, "gold")
-            walletOutput += "{:<6} | {}\n".format(coins, username)
+    # Your logic here to fetch and process wallets
 
-    return (f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```")
+    return f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```"
 
 async def assign_mr_moneybags_role(guild):
-    if len(wallets) == 0:
-        return
-
-    # Define the name of the role you want to assign
-    role_name = "Mr. Moneybags"
-    
-    # Find the role in the guild
-    role = discord.utils.get(guild.roles, name=role_name)
-
-    # Get Mr. Moneybags
-    highest_wallet = -float('inf')
-    mr_moneybags = None
-    
-    # Iterate through wallets list to find the user with the highest wallet
-    for wallet in wallets:
-        user_name, user_wallet = wallet.split(" - ")
-        user_wallet = int(user_wallet)
-        if user_wallet > highest_wallet:
-            highest_wallet = user_wallet
-            mr_moneybags = user_name
-
-    mr_moneybags_user = await guild.fetch_member(mr_moneybags)
-
-    # If the role is found
-    if role:
-        # Check if the user already has the "Mr. Moneybags" role
-        if role not in mr_moneybags_user.roles:
-            # Iterate through all the members of the guild
-            for member in guild.members:
-                # Remove the "Mr. Moneybags" role from all members
-                if role in member.roles:
-                    await member.remove_roles(role)
-        
-            # Add the role to the user if they do not already have it
-            await mr_moneybags_user.add_roles(role)
-            await log(f"Assigned 'Mr. Moneybags' role to {mr_moneybags_user.display_name}")
-        else:
-            await log(f"{mr_moneybags_user.display_name} already has the 'Mr. Moneybags' role")
-
-    return str(mr_moneybags_user.id)
+    # Logic to reset or clear the "Mr. Moneybags" role assignment if needed
+    return None  # Return None or appropriate value if necessary
 
 
 def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "green", "gold", "blue", "pink", "cyan", "white"]
@@ -390,3 +173,25 @@ async def get_username(guild, person):
         await log(f'Error while trying to get the username of one of these users: {person}', isError=True)
 
     return username
+
+
+
+async def initialiseDatabasefromTextfiles():
+    return
+    await log(f'Initialising database from textfiles')
+
+    # SetChannels
+    await log("Info Channels...")
+    with open("./data/info/setchannels.txt", "r") as file:
+        for line in file:
+            channelName, channelID = line.split("=")
+            infoChannelsTable.upsert({"channel_name": channelName, "channel_id": channelID}).execute()
+
+    # Info Text
+    await log("Info Text...")
+    for filename in os.listdir('./data/info'):
+        if filename.endswith('.txt') and filename != "setchannels.txt":
+            name = filename.removesuffix(".txt")
+            text = open('./data/info/' + filename).read()
+            infoTextTable.upsert({"name": name, "text": text}).execute()
+    return

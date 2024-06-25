@@ -18,7 +18,7 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
 
-@bot.tree.command(name="cog-load", description="Load a cog", )
+@bot.tree.command(name="cog-load", description="Load a cog")
 @commands.has_permissions(administrator=True)
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
@@ -52,7 +52,6 @@ async def on_error(event, *args, **kwargs):
 async def on_ready():
     #await clearLogChannel()
     await load_cogs()
-    
     await log(f'Logged in as {bot.user.name}')
 
     # Print all the bot's permissions in the server
@@ -104,9 +103,9 @@ async def on_tree_error(interaction: discord.Interaction, error: app_commands.Ap
             # Log the error
             error_message = f"An error occurred in command tree: {error}\n\n"
             error_message += traceback.format_exc()
-            await print(error_message)
+            print(error_message)
     except Exception as e:
-        await print(f"An error occurred while handling a command tree error: {e}")
+        print(f"An error occurred while handling a command tree error: {e}")
 bot.tree.on_error = on_tree_error
 
 async def main():

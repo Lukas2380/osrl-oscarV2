@@ -14,7 +14,7 @@ class VCGeneratorCog(commands.Cog):
             channel_id = str(after.channel.id)
 
             # Query the database for the given channel ID
-            response = vcGeneratorTable.select("*").eq("vc_id", channel_id).execute()
+            response = vcGeneratorsTable.select("*").eq("vc_id", channel_id).execute()
 
             # Check if the response contains data
             if response and len(response.data) > 0:
@@ -93,7 +93,7 @@ class VCGeneratorCog(commands.Cog):
         await interaction.response.defer()
 
         # Query the database to check if the generator already exists
-        response = vcGeneratorTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
+        response = vcGeneratorsTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
         
         if response and len(response.data) > 0:
             # If the generator already exists
@@ -104,7 +104,7 @@ class VCGeneratorCog(commands.Cog):
             )
         else:
             # Insert the new generator into the database
-            vcGeneratorTable.insert({
+            vcGeneratorsTable.insert({
                 "vc_id": str(vc_channel.id),
                 "vc_name": generative_name,
                 "vc_userlimit": user_limit
@@ -124,11 +124,11 @@ class VCGeneratorCog(commands.Cog):
         await interaction.response.defer()
 
         # Query the database to check if the generator exists
-        response = vcGeneratorTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
+        response = vcGeneratorsTable.select("*").eq("vc_id", str(vc_channel.id)).execute()
         
         if response and len(response.data) > 0:
             # Remove the generator from the database
-            vcGeneratorTable.delete().eq("vc_id", str(vc_channel.id)).execute()
+            vcGeneratorsTable.delete().eq("vc_id", str(vc_channel.id)).execute()
             
             response_embed = Embed(
                 title='Generator removed',
