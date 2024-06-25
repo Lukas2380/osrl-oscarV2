@@ -41,20 +41,19 @@ class Info_Cog(commands.Cog):
     async def set_channels(self, interaction: discord.Interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
         await interaction.response.defer()
         self.channel_ids = {
-            "rulesChannel": rules.id,
-            "faqChannel": faq.id,
-            "anonrepChannel": anonrep.id,
-            "servdirChannel": servdir.id,
-            "servstaffChannel": servstaff.id,
-            "ladderrulesChannel": ladderrules.id,
-            "ladderadmininfoChannel": ladderadmininfo.id,
-            "ladderinfoChannel": ladderinfo.id,
-            "rolesChannel": roles.id
+            "servrules": rules.id,
+            "faq": faq.id,
+            "anonrep": anonrep.id,
+            "servdir": servdir.id,
+            "servstaff": servstaff.id,
+            "1v1rules": ladderrules.id,
+            "admininfo": ladderadmininfo.id,
+            "1v1info": ladderinfo.id,
+            "rolesintro": roles.id
         }
         
         # Save channel IDs to the database
         await self.save_channel_ids()
-
         await interaction.followup.send("Channels have been set.")
 
     @app_commands.command(name="info-send", description="Resends one of the information embeds to the selected channel.")

@@ -14,7 +14,6 @@ supabase = create_client(url, key)
 # Define references to each table
 usersTable = supabase.table("users")
 infoChannelsTable = supabase.table("info_channels")
-infoTextTable = supabase.table("info_text")
 vcGeneratorsTable = supabase.table("vcGenerators")
 temporaryVCTable = supabase.table("temporaryVC")
 leaderboardTable = supabase.table("leaderboard")
@@ -177,7 +176,6 @@ async def get_username(guild, person):
 
 
 async def initialiseDatabasefromTextfiles():
-    return
     await log(f'Initialising database from textfiles')
 
     # SetChannels
@@ -191,7 +189,9 @@ async def initialiseDatabasefromTextfiles():
     await log("Info Text...")
     for filename in os.listdir('./data/info'):
         if filename.endswith('.txt') and filename != "setchannels.txt":
-            name = filename.removesuffix(".txt")
             text = open('./data/info/' + filename).read()
-            infoTextTable.upsert({"name": name, "text": text}).execute()
+            filename = filename.removesuffix(".txt")
+            channel_name = filename
+            
+            infoChannelsTable.update({"info_text": text}).eq("channel_name", channel_name).execute()
     return
