@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 import os
 import asyncio
 from random import randint
 import typing
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import discord
 import traceback
 from discord.ext import commands
@@ -10,6 +12,8 @@ from discord import app_commands
 import requests
 from cogs.ladder_betting_cog import Ladderbetting_cog
 from data.helper_functions import *
+import pytz
+from pytz import UnknownTimeZoneError
 
 # Load environment variables from .env
 load_dotenv()
@@ -18,9 +22,7 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
 
-#! todo: https://www.reddit.com/r/discordapp/comments/11qy3s8/how_do_i_stop_people_from_adding_reactions_to_a/ tell catharticcup to do that on the roleselect channel 
-
-@bot.tree.command(name="cog-load", description="Load a cog", )
+@bot.tree.command(name="cog-load", description="Load a cog")
 @commands.has_permissions(administrator=True)
 async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
@@ -36,7 +38,7 @@ async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
     await log(f'Bot unloaded extension: {extension}')
     await interaction.followup.send(f"Bot unloaded extension: {extension}")
 
-@bot.tree.command(name="cog-reload", description="Reload a cog")
+@bot.tree.command(name="cog-reload", description="Reload a co")
 @commands.has_permissions(administrator=True)
 async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
     await interaction.response.defer()
@@ -47,8 +49,51 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
 @bot.event
 async def on_error(event, *args, **kwargs):
     error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
-    error_message += traceback.format_exc()
+    error_message += traceback.format_exc() 
     await log(error_message, isError = True)
+
+def get_default_date():
+    return datetime.now().strftime("%Y-%m-%d")
+
+def localize_datetime(dt, tz_name):
+    """Provide a timezone-aware object for a given datetime and timezone name"""
+    assert dt.tzinfo is None
+    timezone = pytz.timezone(tz_name)
+    return timezone.localize(dt)
+
+@bot.tree.command(name="timestamp", description="Generate a Discord timestamp")
+@app_commands.describe(
+    time="Time in HH:MM format (24-hour)",
+    timezone="Your local timezone (e.g., 'UTC', 'America/New_York')",
+    date="Date in YYYY-MM-DD format (default is today's date)"
+)
+async def timestamp(interaction: discord.Interaction, time: str, timezone: str, date: str = get_default_date()):
+    try:
+        # Parse the date and time
+        naive_datetime = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+
+        # Localize the naive datetime to the selected timezone
+        localized_datetime = localize_datetime(naive_datetime, timezone)
+
+        # Convert to UTC to get the UNIX timestamp
+        utc_datetime = localized_datetime.astimezone(pytz.UTC)
+
+        # Get the UNIX timestamp
+        unix_timestamp = int(utc_datetime.timestamp())
+
+        # Create the Discord timestamp string
+        discord_timestamp = f"<t:{unix_timestamp}:F>"
+
+        # Send the plain text message with the timestamp
+        await interaction.response.send_message(
+            f"The universal timestamp is: {discord_timestamp}."
+        )
+    except ValueError as e:
+        await interaction.response.send_message(f"Error: {e}. Please use YYYY-MM-DD for date, HH:MM for time, and a valid timezone.")
+    except UnknownTimeZoneError:
+        await interaction.response.send_message(f"Invalid timezone '{timezone}'. Please provide a valid timezone name.")
+    except Exception as e:
+        await interaction.response.send_message(f"An unexpected error occurred: {e}")
 
 @bot.event
 async def on_ready():
