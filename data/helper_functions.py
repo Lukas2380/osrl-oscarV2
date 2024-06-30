@@ -2,6 +2,27 @@ import re
 import socket
 import typing
 import discord
+import os
+from supabase import create_client 
+from dotenv import load_dotenv
+
+load_dotenv()
+url= os.environ.get("SUPABASE_URL")
+key= os.environ.get("SUPABASE_KEY")
+supabase = create_client(url, key)
+
+# Define references to each table
+usersTable = supabase.table("users")
+infoChannelsTable = supabase.table("info_channels")
+vcGeneratorsTable = supabase.table("vcGenerators")
+temporaryVCTable = supabase.table("temporaryVC")
+leaderboardTable = supabase.table("leaderboard")
+activeChallengesTable = supabase.table("activechallenges")
+lockedPlayersTable = supabase.table("lockedplayers")
+cooldownsTable = supabase.table("cooldowns")
+statsTable = supabase.table("stats")
+betsTable = supabase.table("bets")
+walletsTable = supabase.table("wallets")
 
 red = 0xFF5733
 blue = 0x0CCFFF
@@ -338,25 +359,35 @@ def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "gree
     return output
 
 async def get_user_id(guild, person):
-        if person.startswith("<@"):
-            person = re.search(r'\d+', person).group()
+    userID = None
 
-        attributes_to_search = ['name', 'nick', 'display_name', 'id']
-        for attribute in attributes_to_search:
+    try:
+        if isinstance(person, (discord.Member, discord.User)):
+            userID = person.id
+        elif isinstance(person, str):
+            if person.startswith("<@") and person.endswith(">"):
+                person = person.strip("<@!>")
+            userID = int(person)
+        else:
+            raise ValueError("Invalid person type")
+
+        # Insert or update user in users table
+        if userID:
             try:
-                if attribute == "id":
-                    try:
-                        person = int(person)
-                    except:
-                        pass
-                user = discord.utils.get(guild.members, **{attribute: person})
-                if user:
-                    return str(user.id)  # Found user, return user ID
-            except Exception as e:
-                await log(f"Exception: {e}")
+                usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
+                
+                username = await get_username(guild, userID)
+                if username:
+                    usersTable.update({"user_name": username}).eq("user_id", userID).execute()
 
-        return person
+            except Exception as e:
+                print(f"Error executing SQL operation: {e}")
     
+    except Exception as e:
+        print(f"Error fetching user ID: {e}")
+
+    return str(userID)
+
 async def get_username(guild, person):
     try:
         username = guild.get_member(int(person)).display_name
@@ -365,3 +396,113 @@ async def get_username(guild, person):
         await log(f'Error while trying to get the username of one of these users: {person}', isError=True)
 
     return username
+
+async def initialiseDatabasefromTextfiles(guild):
+    await log(f'Initialising database from textfiles')
+
+    # SetChannels
+    await log("Info Channels...")
+    with open("./data/info/setchannels.txt", "r") as file:
+        for line in file:
+            channelName, channelID = line.split("=")
+            infoChannelsTable.upsert({"channel_name": channelName, "channel_id": channelID}).execute()
+
+    # Info Text
+    await log("Info Text...")
+    for filename in os.listdir('./data/info'):
+        if filename.endswith('.txt') and filename != "setchannels.txt":
+            text = open('./data/info/' + filename).read()
+            filename = filename.removesuffix(".txt")
+            channel_name = filename
+            infoChannelsTable.update({"info_text": text}).eq("channel_name", channel_name).execute()
+
+    # Locked Players
+    await log("Locked Players...")
+    with open("./data/ladder/lockedPlayers.txt") as file:
+        for line in file:
+            if not line.startswith(" "):
+                position, playerID, date = line.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                lockedPlayersTable.upsert({"user_id": playerID, "position": position, "created_at": date}).execute()
+
+    # Leaderboard
+    await log("Leaderboard...")
+    with open("./data/ladder/leaderboard.txt") as file:
+        position = 1
+        for playerID in file:
+            if not playerID.startswith(" "):
+                playerID = await get_user_id(guild, playerID)
+                leaderboardTable.upsert({"user_id": playerID, "position": position}).execute()
+                position = position + 1
+
+    # Active Challenges
+    await log("Active Challenges...")
+    with open("./data/ladder/activeChallenges.txt") as file:
+        for chal in file:
+            if not chal.startswith(" "):
+                challenger_id, defender_id, date, isguardianChal = chal.split(" - ")
+                activeChallengesTable.upsert({"challenger_id": challenger_id, "defender_id": defender_id, "isguardianchal": isguardianChal, "created_at": date}).execute()
+
+    # Cooldowns
+    await log("Cooldowns...")
+    with open("./data/ladder/cooldowns.txt") as file:
+        for cooldown in file:
+            if not cooldown.startswith(" "):
+                playerID, date = cooldown.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                cooldownsTable.upsert({"user_id": playerID, "chalcooldown": date}).execute()
+    with open("./data/ladder/claimcoins_cooldown.txt") as file:
+        for cooldown in file:
+            if not cooldown.startswith(" "):
+                playerID, date = cooldown.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                cooldownsTable.upsert({"user_id": playerID, "claimcooldown": date}).execute()
+
+    # Stats + Streaks
+    await log("Stats + Streaks")
+    with open("./data/ladder/stats.txt") as file:
+        for stat in file:
+            if not stat.startswith(" "):
+                playerID, wins, losses, streak = stat.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                statsTable.upsert({"user_id": playerID, "wins": wins, "losses": losses, "streak": streak}).execute()
+    with open("./data/ladder/streaksLeaderboard.txt") as file:
+        for streak in file:
+            if not streak.startswith(" "):
+                playerID, lossstreak, winstreak = streak.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                statsTable.upsert({"user_id": playerID, "highestwinstreak": winstreak, "highestlossstreak": lossstreak}).execute()
+
+    # Wallets
+    await log("Wallets...")
+    with open("./data/ladder/wallets.txt") as file:
+        for wallet in file:
+            if not wallet.startswith(" "):
+                playerID, coins = wallet.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                walletsTable.upsert({"user_id": playerID, "coins": coins}).execute()
+    with open("./data/ladder/wallets_activityBonusMessages.txt") as file:
+        for bonus in file:
+            if not bonus.startswith(" "):
+                playerID, coins = bonus.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                walletsTable.upsert({"user_id": playerID, "bonuscoinsmessages": coins}).execute()
+    with open("./data/ladder/wallets_activityBonusVCTime.txt") as file:
+        for bonus in file:
+            if not bonus.startswith(" "):
+                playerID, coins = bonus.split(" - ")
+                playerID = await get_user_id(guild, playerID)
+                walletsTable.upsert({"user_id": playerID, "bonuscoinsvctime": coins}).execute()
+
+    # Bets
+    await log("Bets...")
+    with open("./data/ladder/bets.txt") as file:
+        for bet in file:
+            if not bet.startswith(" "):
+                playerID, userID, coins, timeBet = bet.split(' - ')
+                playerID = await get_user_id(guild, playerID)
+                userID = await get_user_id(guild, userID)
+                betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute()
+
+    await log("DB Init done!")
+    return

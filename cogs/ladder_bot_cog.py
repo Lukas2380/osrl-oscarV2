@@ -25,6 +25,9 @@ class LadderBot_cog(commands.Cog):
             #await log(str(guild))
             if len(stats) == 0:
                 await self.getoldstats(guild)
+            stats = statsTable.select("*").execute()
+            if len(stats.data) == 0:
+                await initialiseDatabasefromTextfiles(guild)
             #await update_ladder(guild)
 
     def update_streak(self, player: str, win:bool, currentStreak: int):
