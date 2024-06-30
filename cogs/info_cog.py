@@ -16,7 +16,7 @@ class Info_Cog(commands.Cog):
     # Initialize variables with default values or None
     rulesChannel = None
     faqChannel = None
-    anonrepChannel = None
+    anonrepChannel = None 
     servdirChannel = None
     servstaffChannel = None
     ladderrulesChannel = None
@@ -45,15 +45,15 @@ class Info_Cog(commands.Cog):
 
     def save_channel_ids(self):
         channels_data = {
-            "rulesChannel": self.rulesChannel,
-            "faqChannel": self.faqChannel,
-            "anonrepChannel": self.anonrepChannel,
-            "servdirChannel": self.servdirChannel,
-            "servstaffChannel": self.servstaffChannel,
-            "ladderrulesChannel": self.ladderrulesChannel,
-            "ladderadmininfoChannel": self.ladderadmininfoChannel,
-            "ladderinfoChannel": self.ladderinfoChannel,
-            "rolesChannel": self.rolesChannel,
+            "servrules": self.rulesChannel,
+            "faq": self.faqChannel,
+            "anonrep": self.anonrepChannel,
+            "servdir": self.servdirChannel,
+            "servstaff": self.servstaffChannel,
+            "1v1rules": self.ladderrulesChannel,
+            "admininfo": self.ladderadmininfoChannel,
+            "1v1info": self.ladderinfoChannel,
+            "rolesintro": self.rolesChannel,
         }
 
         with open('./data/info/setchannels.txt', 'w') as file:

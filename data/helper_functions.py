@@ -417,8 +417,6 @@ async def initialiseDatabasefromTextfiles(guild):
         if filename.endswith('.txt') and filename != "setchannels.txt":
             text = open('./data/info/' + filename).read()
             channel_name = filename.removesuffix(".txt")
-            print(channel_name)
-            print(text)
             infoChannelsTable.update({"info_text": text}).eq("channel_name", channel_name).execute()
 
     # Locked Players
