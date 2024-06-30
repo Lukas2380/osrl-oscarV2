@@ -23,8 +23,8 @@ class LadderBot_cog(commands.Cog):
         #await log("Bot is active in these guilds:")
         for guild in self.bot.guilds:
             #await log(str(guild))
-            if len(stats) == 0:
-                await self.getoldstats(guild)
+            #if len(stats) == 0:
+                #await self.getoldstats(guild)
             stats = statsTable.select("*").execute()
             if len(stats.data) == 0:
                 await initialiseDatabasefromTextfiles(guild)
