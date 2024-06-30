@@ -17,8 +17,8 @@ class LadderBot_cog(commands.Cog):
         for guild in self.bot.guilds:
             #await log(str(guild))
             stats = statsTable.select("*").execute()
-            #if len(stats.data) == 0:
-            await initialiseDatabasefromTextfiles()
+            if len(stats.data) == 0:
+                await initialiseDatabasefromTextfiles(guild)
             #await update_ladder(guild)
 
     @app_commands.command(name="show-cooldowns", description="Show all the cooldowns of the people in the ladder")
