@@ -404,7 +404,7 @@ async def get_username(guild, person):
 async def initialiseDatabasefromTextfiles(guild):
     await log(f'Initialising database from textfiles')
 
-    # SetChannels
+    """# SetChannels
     await log("Info Channels...")
     with open("./data/info/setchannels.txt", "r") as file:
         for line in file:
@@ -483,7 +483,7 @@ async def initialiseDatabasefromTextfiles(guild):
                 playerID, lossstreak, winstreak = streak.split(" - ")
                 playerID = await get_user_id(guild, playerID)
                 if playerID:
-                    statsTable.upsert({"user_id": playerID, "highestwinstreak": winstreak, "highestlossstreak": lossstreak}).execute()
+                    statsTable.upsert({"user_id": playerID, "highestwinstreak": winstreak, "highestlossstreak": lossstreak}).execute() """
 
     # Wallets
     await log("Wallets...")
@@ -494,7 +494,7 @@ async def initialiseDatabasefromTextfiles(guild):
                 playerID = await get_user_id(guild, playerID)
                 if playerID:
                     walletsTable.upsert({"user_id": playerID, "coins": coins}).execute()
-    with open("./data/ladder/wallets_activityBonusMessages.txt") as file:
+    """ with open("./data/ladder/wallets_activityBonusMessages.txt") as file:
         for bonus in file:
             if not bonus.startswith(" "):
                 playerID, coins = bonus.split(" - ")
@@ -507,9 +507,9 @@ async def initialiseDatabasefromTextfiles(guild):
                 playerID, coins = bonus.split(" - ")
                 playerID = await get_user_id(guild, playerID)
                 if playerID:
-                    walletsTable.upsert({"user_id": playerID, "bonuscoinsvctime": coins}).execute()
+                    walletsTable.upsert({"user_id": playerID, "bonuscoinsvctime": coins}).execute() """
 
-    # Bets
+    """# Bets
     await log("Bets...")
     with open("./data/ladder/bets.txt") as file:
         for bet in file:
@@ -518,7 +518,7 @@ async def initialiseDatabasefromTextfiles(guild):
                 playerID = await get_user_id(guild, playerID)
                 userID = await get_user_id(guild, userID)
                 if playerID and userID:
-                    betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute()
+                    betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute() """
 
     await log("DB Init done!")
     return
