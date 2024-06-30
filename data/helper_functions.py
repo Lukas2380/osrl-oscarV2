@@ -393,7 +393,7 @@ async def get_username(guild, person):
         username = guild.get_member(int(person)).display_name
     except:
         username = f"no name found for: {person}"
-        await log(f'Error while trying to get the username of one of these users: {person}', isError=True)
+        await log(f'Error while trying to get the username of one of these users: {person}')
 
     return username
 
