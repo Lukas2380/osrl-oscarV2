@@ -155,6 +155,8 @@ async def get_user_id(guild, person):
                 username = await get_username(guild, userID)
                 if username:
                     usersTable.update({"user_name": username}).eq("user_id", userID).execute()
+                else:
+                    return None
 
             except Exception as e:
                 print(f"Error executing SQL operation: {e}")
@@ -165,14 +167,15 @@ async def get_user_id(guild, person):
     return str(userID)
 
 async def get_username(guild, person):
-    try:
-        username = guild.get_member(int(person)).display_name
-    except:
-        username = f"no name found for: {person}"
-        await log(f'Error while trying to get the username of one of these users: {person}', isError=True)
+    user = guild.get_member(int(person))
+    if user == None:
+        await log(f'Error while trying to get the username of one of these users: {person}')
+        usersTable.delete().eq("user_id", person).execute()
+        return None
+    else:
+        username = user.display_name
 
     return username
-
 
 
 async def initialiseDatabasefromTextfiles(guild):
@@ -190,8 +193,7 @@ async def initialiseDatabasefromTextfiles(guild):
     for filename in os.listdir('./data/info'):
         if filename.endswith('.txt') and filename != "setchannels.txt":
             text = open('./data/info/' + filename).read()
-            filename = filename.removesuffix(".txt")
-            channel_name = filename
+            channel_name = filename.removesuffix(".txt")
             infoChannelsTable.update({"info_text": text}).eq("channel_name", channel_name).execute()
 
     # Locked Players
@@ -201,7 +203,8 @@ async def initialiseDatabasefromTextfiles(guild):
             if not line.startswith(" "):
                 position, playerID, date = line.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                lockedPlayersTable.upsert({"user_id": playerID, "position": position, "created_at": date}).execute()
+                if playerID:
+                    lockedPlayersTable.upsert({"user_id": playerID, "position": position, "created_at": date}).execute()
 
     # Leaderboard
     await log("Leaderboard...")
@@ -210,8 +213,9 @@ async def initialiseDatabasefromTextfiles(guild):
         for playerID in file:
             if not playerID.startswith(" "):
                 playerID = await get_user_id(guild, playerID)
-                leaderboardTable.upsert({"user_id": playerID, "position": position}).execute()
-                position = position + 1
+                if playerID:
+                    leaderboardTable.upsert({"user_id": playerID, "position": position}).execute()
+                    position = position + 1
 
     # Active Challenges
     await log("Active Challenges...")
@@ -219,7 +223,10 @@ async def initialiseDatabasefromTextfiles(guild):
         for chal in file:
             if not chal.startswith(" "):
                 challenger_id, defender_id, date, isguardianChal = chal.split(" - ")
-                activeChallengesTable.upsert({"challenger_id": challenger_id, "defender_id": defender_id, "isguardianchal": isguardianChal, "created_at": date}).execute()
+                challenger_id = await get_user_id(guild, challenger_id)
+                defender_id = await get_user_id(guild, defender_id)
+                if challenger_id and defender_id:
+                    activeChallengesTable.upsert({"challenger_id": challenger_id, "defender_id": defender_id, "isguardianchal": isguardianChal, "created_at": date}).execute()
 
     # Cooldowns
     await log("Cooldowns...")
@@ -228,13 +235,15 @@ async def initialiseDatabasefromTextfiles(guild):
             if not cooldown.startswith(" "):
                 playerID, date = cooldown.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                cooldownsTable.upsert({"user_id": playerID, "chalcooldown": date}).execute()
+                if playerID:
+                    cooldownsTable.upsert({"user_id": playerID, "chalcooldown": date}).execute()
     with open("./data/ladder/claimcoins_cooldown.txt") as file:
         for cooldown in file:
             if not cooldown.startswith(" "):
                 playerID, date = cooldown.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                cooldownsTable.upsert({"user_id": playerID, "claimcooldown": date}).execute()
+                if playerID:
+                    cooldownsTable.upsert({"user_id": playerID, "claimcooldown": date}).execute()
 
     # Stats + Streaks
     await log("Stats + Streaks")
@@ -243,13 +252,15 @@ async def initialiseDatabasefromTextfiles(guild):
             if not stat.startswith(" "):
                 playerID, wins, losses, streak = stat.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                statsTable.upsert({"user_id": playerID, "wins": wins, "losses": losses, "streak": streak}).execute()
+                if playerID:
+                    statsTable.upsert({"user_id": playerID, "wins": wins, "losses": losses, "streak": streak}).execute()
     with open("./data/ladder/streaksLeaderboard.txt") as file:
         for streak in file:
             if not streak.startswith(" "):
                 playerID, lossstreak, winstreak = streak.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                statsTable.upsert({"user_id": playerID, "highestwinstreak": winstreak, "highestlossstreak": lossstreak}).execute()
+                if playerID:
+                    statsTable.upsert({"user_id": playerID, "highestwinstreak": winstreak, "highestlossstreak": lossstreak}).execute()
 
     # Wallets
     await log("Wallets...")
@@ -258,19 +269,22 @@ async def initialiseDatabasefromTextfiles(guild):
             if not wallet.startswith(" "):
                 playerID, coins = wallet.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                walletsTable.upsert({"user_id": playerID, "coins": coins}).execute()
+                if playerID:
+                    walletsTable.upsert({"user_id": playerID, "coins": coins}).execute()
     with open("./data/ladder/wallets_activityBonusMessages.txt") as file:
         for bonus in file:
             if not bonus.startswith(" "):
                 playerID, coins = bonus.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                walletsTable.upsert({"user_id": playerID, "bonuscoinsmessages": coins}).execute()
+                if playerID:
+                    walletsTable.upsert({"user_id": playerID, "bonuscoinsmessages": coins}).execute()
     with open("./data/ladder/wallets_activityBonusVCTime.txt") as file:
         for bonus in file:
             if not bonus.startswith(" "):
                 playerID, coins = bonus.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                walletsTable.upsert({"user_id": playerID, "bonuscoinsvctime": coins}).execute()
+                if playerID:
+                    walletsTable.upsert({"user_id": playerID, "bonuscoinsvctime": coins}).execute()
 
     # Bets
     await log("Bets...")
@@ -280,7 +294,8 @@ async def initialiseDatabasefromTextfiles(guild):
                 playerID, userID, coins, timeBet = bet.split(' - ')
                 playerID = await get_user_id(guild, playerID)
                 userID = await get_user_id(guild, userID)
-                betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute()
+                if playerID and userID:
+                    betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute()
 
     await log("DB Init done!")
     return
