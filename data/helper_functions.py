@@ -416,8 +416,9 @@ async def initialiseDatabasefromTextfiles(guild):
     for filename in os.listdir('./data/info'):
         if filename.endswith('.txt') and filename != "setchannels.txt":
             text = open('./data/info/' + filename).read()
-            filename = filename.removesuffix(".txt")
-            channel_name = filename
+            channel_name = filename.removesuffix(".txt")
+            print(channel_name)
+            print(text)
             infoChannelsTable.update({"info_text": text}).eq("channel_name", channel_name).execute()
 
     # Locked Players
@@ -466,7 +467,8 @@ async def initialiseDatabasefromTextfiles(guild):
             if not cooldown.startswith(" "):
                 playerID, date = cooldown.split(" - ")
                 playerID = await get_user_id(guild, playerID)
-                cooldownsTable.upsert({"user_id": playerID, "claimcooldown": date}).execute()
+                if playerID:
+                    cooldownsTable.upsert({"user_id": playerID, "claimcooldown": date}).execute()
 
     # Stats + Streaks
     await log("Stats + Streaks")
