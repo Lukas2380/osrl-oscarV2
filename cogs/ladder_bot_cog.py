@@ -27,11 +27,13 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="show-ladder", description="Show the current ladder")
     async def ladder(self, interaction):
-        pass
+        await interaction.response.defer()
+        await interaction.followup.send(await get_ladder(interaction.guild))
 
     @app_commands.command(name="show-active", description="Show active challenges")
     async def active(self, interaction):
-        pass
+        await interaction.response.defer()
+        await interaction.followup.send(await get_activeChallenges(interaction.guild))
 
     @app_commands.command(name="show-stats", description="Show the stats for the 1s ladder")
     async def show_stats(self, interaction):

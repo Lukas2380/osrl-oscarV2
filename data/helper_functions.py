@@ -91,12 +91,53 @@ async def get_activeChallenges(guild):
     return f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{active_challenges}```"
 
 async def get_ladder(guild):
-    # Standard output if no leaderboard data is available
-    ladder_table = "No one on the ladder"
+    # Standard output if no one is on the ladder
+    ladder_table = 'No one on the ladder'
 
-    # Your logic here to fetch and process the leaderboard
+    # Fetch leaderboard data from Supabase
+    leaderboard = leaderboardTable.select("user_id", "usersTable:user_id ( user_name )").order("position").execute()
+    leaderboard = leaderboard.data
+
+    """ # Check for errors
+    if response.error:
+        print('Error fetching leaderboard:', response.error)
+        return f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```" """
+
+    # Extract and format leaderboard data
+    if len(leaderboard) > 0:
+        ladder_table = ""
+        rank = 0
+        mr_moneybags = leaderboard[0]['user_id']
+        await assign_mr_moneybags_role(guild, mr_moneybags)
+
+        for person in leaderboard:
+            rank += 1
+            username = person['usersTable']['user_name']
+
+            # Formatting symbols and colors
+            symbol = ""
+            makeColor = ""
+
+            lst = [3] + [i for i in range(5, len(leaderboard)+1, 5)]
+            if (leaderboard.index(person) + 1) in lst:
+                symbol += "🛡️"
+                makeColor = "blue"
+
+            if person == mr_moneybags:
+                symbol += "💰"
+                makeColor = "green"
+
+            if rank == 1:
+                symbol += "👑"
+                makeColor = "gold"
+
+            username = coloriseString(username, makeColor)
+
+            # Append to ladder table string
+            ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
 
     return f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```"
+
 
 async def get_wallets(guild):
     # Standard output if no wallet data is available
