@@ -86,11 +86,11 @@ class LadderAdmin_cog(commands.Cog):
  
     @app_commands.command(name="admin-updateladder", description="Command for manually updating the ladder")
     async def updateladder(self, interaction):
-        # Command function to manually update the ladder
-        # Parameters:
-        # - interaction: Discord interaction context
-        # Action: Reload data and update ladder
-        pass 
- 
+        # This is a manual ladder update
+        await interaction.response.defer()
+        await update_ladder(interaction.guild)
+        response = Embed(title="Ladder Updated", description="The ladder has been updated.", color=blue)
+        await interaction.followup.send(embed=response)
+
 async def setup(bot:commands.Bot) -> None:
     await bot.add_cog(LadderAdmin_cog(bot))

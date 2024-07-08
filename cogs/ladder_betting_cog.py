@@ -65,11 +65,8 @@ class Ladderbetting_cog(commands.Cog):
 
     @app_commands.command(name="show-wallets", description="Displays the top 20 wallets with the most amount of coins")
     async def show_wallets(self, interaction):
-        # Command function to display top wallets
-        # Parameters:
-        # - interaction: Discord interaction context
-        # Action: Retrieve and display top wallets
-        pass
+        await interaction.response.defer()
+        await interaction.followup.send(await get_wallets(interaction.guild))
 
     @app_commands.command(name="show-wallet", description="Only shows you your own wallet")
     async def show_wallet(self, interaction, player: discord.Member):

@@ -83,47 +83,112 @@ async def update_ladder(guild):
             await log("Error: Channel not found.", isError=True)
 
 async def get_activeChallenges(guild):
-    # Standard output if no active challenges are found
-    active_challenges = "No active challenges"
+        active_challenges = "No active challenges"
 
-    # Your logic here to fetch and process active challenges
+        active_challenges = activeChallengesTable.select(
+            "challenger:challenger_id (user_id, user_name)",
+            "defender:defender_id (user_id, user_name)",
+            "created_at",
+            "isguardianchal"
+        ).order("created_at").execute()
+        active_challenges = active_challenges.data
+        
+        if len(active_challenges) > 0:
+            # Clear the output and write the active challenges
+            output = ""
 
-    return f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{active_challenges}```"
+            mr_moneybags = await assign_mr_moneybags_role(guild)
+            leaderboard = leaderboardTable.select("user_id").order("position").limit(1).execute()
+            ladderLeader = leaderboard.data[0]["user_id"]
+
+            for challenge in active_challenges:
+                    symbol = "⚔️"
+                    challengerColor = "red"
+                    defenderColor = "red"
+
+                    # Get the playernames, playerpositions and usernames of the players
+                    challenger_id = challenge["challenger"]["user_id"]
+                    challenger_name = challenge["challenger"]["user_name"]
+                    defender_id = challenge["defender"]["user_id"]
+                    defender_name = challenge["defender"]["user_name"]
+                    date = challenge["created_at"]
+                    isGuardianChal = ["isguardianchal"]
+
+                    date = date[5:10].replace("-", "/")
+
+                    if mr_moneybags == challenger_id:
+                        challengerColor = "green"
+                    elif mr_moneybags == defender_id:
+                        defenderColor = "green"
+
+                    if isGuardianChal == "true":
+                        symbol = "🗡️"
+                        defenderColor = "blue"
+
+                    
+                    if defender_id == ladderLeader:
+                        defenderColor = "gold"
+
+                    if len(challenger_name+defender_name) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
+                        challenger_name = challenger_name[:17]
+                        defender_name = defender_name[:17]
+
+                    challenger_name = coloriseString(challenger_name, challengerColor)
+                    defender_name = coloriseString(defender_name, defenderColor)
+
+                    # Write and format the active challenges
+                    output += f"{date}: {challenger_name}{' '* (14 - len(challenger_name))} {symbol} {defender_name}{' '* (14 - len(defender_name))}\n"
+        
+        return(f">>> ```ansi\n{output}```")
+        return(f">>> ## Active Challenges: \n### **First Player vs Second Player **\n ```ansi\n{output}```")
 
 async def get_ladder(guild):
     # Standard output if no one is on the ladder
     ladder_table = 'No one on the ladder'
 
     # Fetch leaderboard data from Supabase
-    leaderboard = leaderboardTable.select("user_id", "usersTable:user_id ( user_name )").order("position").execute()
+    leaderboard = leaderboardTable.select("player:user_id (user_id, user_name)").order("position").execute()
     leaderboard = leaderboard.data
-
-    """ # Check for errors
-    if response.error:
-        print('Error fetching leaderboard:', response.error)
-        return f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```" """
 
     # Extract and format leaderboard data
     if len(leaderboard) > 0:
         ladder_table = ""
         rank = 0
-        mr_moneybags = leaderboard[0]['user_id']
-        await assign_mr_moneybags_role(guild, mr_moneybags)
+
+        mr_moneybags = await assign_mr_moneybags_role(guild)
 
         for person in leaderboard:
             rank += 1
-            username = person['usersTable']['user_name']
+            username = person['player']['user_name']
+            userID = person['player']['user_id']
 
             # Formatting symbols and colors
             symbol = ""
             makeColor = ""
 
+            active_challenges = activeChallengesTable.select(
+                "isguardianchal"
+            ).or_(
+                f"challenger_id.eq.{userID},defender_id.eq.{userID}"
+            ).execute()
+
+            active_challenges = active_challenges.data
+
+            if len(active_challenges) > 0: 
+                isGuardianChal = ["isguardianchal"]
+
+                makeColor = "red"
+                if isGuardianChal == "TRUE":
+                    symbol = "🗡️"
+                else:
+                    symbol = "⚔️"
+
             lst = [3] + [i for i in range(5, len(leaderboard)+1, 5)]
-            if (leaderboard.index(person) + 1) in lst:
+            if rank in lst:
                 symbol += "🛡️"
                 makeColor = "blue"
 
-            if person == mr_moneybags:
+            if userID == mr_moneybags:
                 symbol += "💰"
                 makeColor = "green"
 
@@ -134,23 +199,74 @@ async def get_ladder(guild):
             username = coloriseString(username, makeColor)
 
             # Append to ladder table string
+            if symbol != "":
+                symbol = f"[{symbol}]"
+
             ladder_table += "{:>}. {} {:<}\n".format(rank, symbol, username)
 
+    return f">>> ```ansi\n{ladder_table}```"
     return f">>> ## Current Ladder: \n ### **Rank ⚔️ Player **\n ```ansi\n{ladder_table}```"
 
-
 async def get_wallets(guild):
-    # Standard output if no wallet data is available
     walletOutput = "No wallets found"
 
-    # Your logic here to fetch and process wallets
+    # Fetch wallet data from Supabase
+    wallets = walletsTable.select("player:user_id (user_id, user_name), coins").order("coins", desc=True).limit(20).execute()
+    wallets = wallets.data
 
-    return f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```"
+    if len(wallets) > 0:
+        walletOutput = ""
+        mrMoneybags = ""
+
+        leaderboard = leaderboardTable.select("user_id").order("position").limit(1).execute()
+        ladderLeader = leaderboard.data[0]["user_id"]
+
+        for wallet in wallets:
+            user_id = wallet["player"]["user_id"]
+            user_name = wallet["player"]["user_name"]
+            coins = wallet["coins"]
+
+            if mrMoneybags == "":
+                mrMoneybags = user_id
+            
+            if user_id == mrMoneybags and user_id == ladderLeader:
+                user_name = "[👑💰] " + coloriseString(user_name, "green")
+            elif user_id == mrMoneybags:
+                user_name = "[💰] " + coloriseString(user_name, "green")
+            elif user_id == ladderLeader:
+                user_name = "[👑] " + coloriseString(user_name, "gold")
+            walletOutput += "{:<6} | {}\n".format(coins, user_name)
+
+    return (f">>> ```ansi\n{walletOutput}```")
+    return (f">>> ## Wallets Leaderboard: \n### ** Coins | Name **\n ```ansi\n{walletOutput}```")
 
 async def assign_mr_moneybags_role(guild):
-    # Logic to reset or clear the "Mr. Moneybags" role assignment if needed
-    return None  # Return None or appropriate value if necessary
+    wallets = walletsTable.select("user_id").order("coins", desc=True).execute()
+    mrMoneybags = wallets.data[0]["user_id"]
 
+    # Define the name of the role you want to assign
+    role_name = "Mr. Moneybags"
+    
+    # Find the role in the guild
+    role = discord.utils.get(guild.roles, name=role_name)
+
+    mr_moneybags_user = await guild.fetch_member(mrMoneybags)
+
+    # If the role is found
+    if role:
+        # Check if the user already has the "Mr. Moneybags" role
+        if role not in mr_moneybags_user.roles:
+            # Iterate through all the members of the guild
+            for member in guild.members:
+                # Remove the "Mr. Moneybags" role from all members
+                if role in member.roles:
+                    await member.remove_roles(role)
+        
+            # Add the role to the user if they do not already have it
+            await mr_moneybags_user.add_roles(role)
+            await log(f"Assigned 'Mr. Moneybags' role to {mr_moneybags_user.display_name}")
+
+    return mrMoneybags
 
 def coloriseString(input: str, color: str): #typing.Literal["grey", "red", "green", "gold", "blue", "pink", "cyan", "white"]
     match color:
