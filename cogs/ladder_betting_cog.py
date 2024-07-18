@@ -480,7 +480,10 @@ class Ladderbetting_cog(commands.Cog):
 
         for wallet in wallets:
             if user_id in wallet:
-                wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
+                if user_id == "231704982091595779":
+                    wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet - (coins_to_add + activityCoinsVC + activityCoinsMessages)}"
+                else:
+                    wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
                 await log(f"{await get_username(interaction.guild, user_id)} (Had: {coins_in_wallet}, Random: {coins_to_add}, VC: {activityBonusVCTime.get(str(user_id), 0)}, Messages: {activityBonusMessages.get(str(user_id), 0)})")
 
         activityBonusVCTime[str(user_id)] = 0
