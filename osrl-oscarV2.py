@@ -95,17 +95,14 @@ async def on_message(message):
                 await message.channel.send(f"{message.author.mention}, {insult}")
 
 @bot.event
-async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
-    try:
-        if isinstance(error, app_commands.MissingPermissions):
+async def on_tree_error(interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
             return await interaction.response.send_message(f"You're missing permissions to use that", ephemeral=True)
-        else:
-            # Log the error
-            error_message = f"An error occurred in command tree: {error}\n\n"
-            error_message += traceback.format_exc()
-            print(error_message)
-    except Exception as e:
-        print(f"An error occurred while handling a command tree error: {e}")
+    else:
+        # Log the error
+        error_message = f"An error occurred in command tree: {error}\n\n"
+        error_message += traceback.format_exc()
+        print(error_message)
 bot.tree.on_error = on_tree_error
 
 async def main():

@@ -1,4 +1,5 @@
 import asyncio
+import random
 import typing
 import discord
 from discord.ext import commands
@@ -61,11 +62,32 @@ class LadderBot_cog(commands.Cog):
 
     @app_commands.command(name="join", description="Join the ladder!")
     async def join(self, interaction):
-        pass
+        await interaction.response.defer()
+        playerID = await get_user_id(interaction.guild, interaction.user)
+
+        try:
+            # Add player to the leaderboard
+            highestPosition = leaderboardTable.select("position").order("position", desc=True).limit(1).execute()
+            leaderboardTable.insert({"user_id": playerID, "position":highestPosition.data[0]['position'] + 1}).execute()
+            
+            response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
+            await update_ladder(interaction.guild)
+        except APIError as e:
+            response = Embed(title="Cant join the ladder", description=f'{interaction.user.mention}, you are already in the ladder', color=red)
+            print(e)
+
+        await interaction.followup.send(embed=response)
 
     @app_commands.command(name="cointoss", description="Toss a coin!")
     async def cointoss(self, interaction):
-        pass
+        await interaction.response.defer()
+        r = random.randint(1,2)
+        if r == 1:
+            result = "Heads!"
+        else:
+            result = "Tails!"
+        response = Embed(title='Result:', description=result, color=blue)
+        await interaction.followup.send(embed=response)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LadderBot_cog(bot))

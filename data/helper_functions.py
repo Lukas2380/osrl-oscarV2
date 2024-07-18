@@ -5,6 +5,7 @@ import discord
 import os
 from supabase import create_client 
 from dotenv import load_dotenv
+from postgrest.exceptions import APIError
 
 load_dotenv()
 url= os.environ.get("SUPABASE_URL")
@@ -159,8 +160,8 @@ async def get_ladder(guild):
 
         for person in leaderboard:
             rank += 1
-            username = person['player']['user_name']
             userID = person['player']['user_id']
+            username = await get_username(guild, userID)
 
             # Formatting symbols and colors
             symbol = ""
@@ -308,16 +309,9 @@ async def get_user_id(guild, person):
         if userID:
             try:
                 usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
-                
-                username = await get_username(guild, userID)
-                if username:
-                    usersTable.update({"user_name": username}).eq("user_id", userID).execute()
-                else:
-                    return None
-
             except Exception as e:
                 print(f"Error executing SQL operation: {e}")
-    
+
     except Exception as e:
         print(f"Error fetching user ID: {e}")
 
@@ -326,7 +320,7 @@ async def get_user_id(guild, person):
 async def get_username(guild, person):
     user = guild.get_member(int(person))
     if user == None:
-        await log(f'Error while trying to get the username of one of these users: {person}')
+        await log(f'Error while trying to get the username of one of these users: {person}, deleting them from the users table', isError=True)
         usersTable.delete().eq("user_id", person).execute()
         return None
     else:
