@@ -22,10 +22,6 @@ class LadderBot_cog(commands.Cog):
                 await initialiseDatabasefromTextfiles(guild)
             #await update_ladder(guild)
 
-    @app_commands.command(name="show-cooldowns", description="Show all the cooldowns of the people in the ladder")
-    async def show_cooldowns(self, interaction):
-        pass
-
     @app_commands.command(name="show-ladder", description="Show the current ladder")
     async def ladder(self, interaction):
         await interaction.response.defer()

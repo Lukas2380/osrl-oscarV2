@@ -87,8 +87,8 @@ async def get_activeChallenges(guild):
         active_challenges = "No active challenges"
 
         active_challenges = activeChallengesTable.select(
-            "challenger:challenger_id (user_id, user_name)",
-            "defender:defender_id (user_id, user_name)",
+            "challenger_id",
+            "defender_id",
             "created_at",
             "isguardianchal"
         ).order("created_at").execute()
@@ -108,10 +108,8 @@ async def get_activeChallenges(guild):
                     defenderColor = "red"
 
                     # Get the playernames, playerpositions and usernames of the players
-                    challenger_id = challenge["challenger"]["user_id"]
-                    challenger_name = challenge["challenger"]["user_name"]
-                    defender_id = challenge["defender"]["user_id"]
-                    defender_name = challenge["defender"]["user_name"]
+                    challenger_id = challenge["challenger_id"]
+                    defender_id = challenge["defender_id"]
                     date = challenge["created_at"]
                     isGuardianChal = ["isguardianchal"]
 
@@ -126,9 +124,11 @@ async def get_activeChallenges(guild):
                         symbol = "🗡️"
                         defenderColor = "blue"
 
-                    
                     if defender_id == ladderLeader:
                         defenderColor = "gold"
+
+                    challenger_name = await get_username(guild, challenger_id)
+                    defender_name = await get_username(guild, defender_id)
 
                     if len(challenger_name+defender_name) > 34: # This is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
                         challenger_name = challenger_name[:17]
@@ -148,7 +148,7 @@ async def get_ladder(guild):
     ladder_table = 'No one on the ladder'
 
     # Fetch leaderboard data from Supabase
-    leaderboard = leaderboardTable.select("player:user_id (user_id, user_name)").order("position").execute()
+    leaderboard = leaderboardTable.select("user_id").order("position").execute()
     leaderboard = leaderboard.data
 
     # Extract and format leaderboard data
@@ -160,7 +160,7 @@ async def get_ladder(guild):
 
         for person in leaderboard:
             rank += 1
-            userID = person['player']['user_id']
+            userID = person['user_id']
             username = await get_username(guild, userID)
 
             # Formatting symbols and colors

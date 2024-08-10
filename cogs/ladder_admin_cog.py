@@ -60,12 +60,25 @@ class LadderAdmin_cog(commands.Cog):
  
     @app_commands.command(name="admin-removechallenge", description="Removes the challenge which has the selected player in it")
     async def removeChallenge(self, interaction, player: discord.User):
-        # Command function to remove a challenge involving a player
-        # Parameters:
-        # - interaction: Discord interaction context
-        # - player: Discord user in the challenge to remove
-        # Action: Remove challenge from active challenges
-        pass 
+        await interaction.response.defer()
+        noActiveChallenge = True
+
+        # Find the challenge and remove it
+        for challenge in activeChallenges:
+            if str(player.id) in challenge:
+                noActiveChallenge = False
+                await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
+                activeChallenges.remove(challenge)
+                writeToFile('activeChallenges', activeChallenges)
+
+                response = Embed(title="Challenge removed", description=f'The challenge with the player: {player.mention} has been removed', color=blue)
+                await update_ladder(interaction.guild)
+                break
+
+        if noActiveChallenge:
+            response = Embed(title="Error", description=f'No active challenge with the player: {player.mention} found', color=red)
+
+        await interaction.followup.send(embed=response)
  
     @app_commands.command(name="admin-removecooldown", description="Removes the players cooldown")
     async def removeCooldown(self, interaction, player: discord.User):
