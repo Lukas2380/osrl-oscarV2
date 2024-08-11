@@ -22,15 +22,8 @@ class Info_Cog(commands.Cog):
     ladderrulesChannel = None
     ladderadmininfoChannel = None
     ladderinfoChannel = None
-    rolesChannel = None
 
     footerText = "Thank you for being a part of this community, the staff work hard to ensure this is a safe and fun environment for everyone, and it wouldn't be possible without all of you"
-
-    with open('./data/info/roles_config.json', 'r') as file:
-        try:
-            roles_config = json.load(file)
-        except Exception as e:
-            print(e)
 
     def load_channel_ids(self):
         file_path = './data/info/setchannels.txt'
@@ -52,8 +45,7 @@ class Info_Cog(commands.Cog):
             "servstaff": self.servstaffChannel,
             "1v1rules": self.ladderrulesChannel,
             "admininfo": self.ladderadmininfoChannel,
-            "1v1info": self.ladderinfoChannel,
-            "rolesintro": self.rolesChannel,
+            "1v1info": self.ladderinfoChannel
         }
 
         with open('./data/info/setchannels.txt', 'w') as file:
@@ -61,7 +53,7 @@ class Info_Cog(commands.Cog):
                 file.write(f"{channel_name}={channel_id}\n")
 
     @app_commands.command(name="info-setchannels", description="Set channels for the info embeds")
-    async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, roles: TextChannel):
+    async def set_channels(self, interaction, rules: TextChannel, faq: TextChannel, anonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel):
         await interaction.response.defer()
         self.rulesChannel = rules.id
         self.faqChannel = faq.id
@@ -71,7 +63,6 @@ class Info_Cog(commands.Cog):
         self.ladderrulesChannel = ladderrules.id
         self.ladderadmininfoChannel = ladderadmininfo.id
         self.ladderinfoChannel = ladderinfo.id
-        self.rolesChannel = roles.id
 
         # Save channel IDs to the text file
         self.save_channel_ids()
@@ -243,110 +234,6 @@ class Info_Cog(commands.Cog):
         await channel.send(embed=servstaffembed)
         response = discord.Embed(title='Embed Sent')
         await interaction.followup.send(embed=response)
-
-    @app_commands.command(name="info-rolesembed", description="Resend the roles embed")
-    async def rolesembed(self, interaction):
-        await interaction.response.defer()
-        channel = self.bot.get_channel(self.rolesChannel)
-        if not channel:
-            return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))
-
-        await channel.purge(limit=6)
-
-        #region RolesIntroEmbed
-        with open('./data/info/rolesintro.txt', 'r') as file:
-            rolesintro = file.read()
-
-        rolesIntroEmbed = discord.Embed(
-            title='Assign your roles',
-            description=rolesintro,
-            color=infoEmbedColor
-        )
-
-        await channel.send(embed=rolesIntroEmbed)
-        await log("--- Rolesintro embed sent.")
-
-        response = discord.Embed(title='Embed Sent')
-        await interaction.followup.send(embed=response)
-        #endregion
-
-        for category, data in self.roles_config.items():
-            title = data["title"]
-            description = data["description"]
-            roles = data.get("roles", {})
-
-            # Create an embed
-            rolesEmbed = discord.Embed(
-                title=title,
-                description=description,
-                color=infoEmbedColor
-            )
-            sent_message = await channel.send(embed=rolesEmbed)
-
-            # Add reactions based on roles
-            await self.add_custom_reactions(sent_message, roles.values(), interaction.guild)
-            await log(f"--- {category} embed sent.")
-
-    async def add_custom_reactions(self, sent_message, emoji_names, guild):
-        for emoji_name in emoji_names:
-            custom_emoji = discord.utils.get(guild.emojis, name=emoji_name)
-            if custom_emoji:
-                try:
-                    await sent_message.add_reaction(custom_emoji)
-                except Exception as e:
-                    await log(e)
-            else:
-                await log(f"Custom emoji '{emoji_name}' not found.")
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        await self.handle_reaction(payload, add=True)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload):
-        await self.handle_reaction(payload, add=False)
-
-    async def handle_reaction(self, payload, add=True): 
-        guild_id = payload.guild_id
-        guild = discord.utils.find(lambda g: g.id == guild_id, self.bot.guilds)
-
-        if guild:
-            channel_id = payload.channel_id
-            channel = discord.utils.find(lambda c: c.id == channel_id, guild.text_channels)
-
-            if channel and channel_id == self.rolesChannel:
-                message_id = payload.message_id
-                message = await channel.fetch_message(message_id)
-                
-                # Check if the reaction is added/removed from a message sent by your bot
-                if message.author.id == self.bot.user.id:
-                    # Handle the reaction based on the emoji
-                    emoji = payload.emoji.name
-                    member = guild.get_member(payload.user_id)
-
-                    # Check if the user is not a bot
-                    if not member.bot:
-                        # Check which category the emoji belongs to
-                        for _, data in self.roles_config.items():
-                            roles = data.get("roles", {})
-                            if emoji in roles.values():
-                                # Find the role associated with the emoji
-                                role_name = next(role for role, role_emoji in roles.items() if role_emoji == emoji)
-                                
-                                # Get the role object from the guild
-                                role = discord.utils.get(guild.roles, name=role_name)
-
-                                # Add or remove the role from the member based on the 'add' parameter
-                                if role:
-                                    if add:
-                                        await member.add_roles(role)
-                                        await log(f"--- Added role {role_name} to {member.display_name}")
-                                    else:
-                                        await member.remove_roles(role)
-                                        await log(f"--- Removed role {role_name} from {member.display_name}")
-                                    break
-                                else:
-                                    await log(f"Role {role_name} not found", error=True)
 
 async def setup(bot:commands.Bot) -> None:
     await bot.add_cog(Info_Cog(bot))
