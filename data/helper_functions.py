@@ -3,16 +3,16 @@ import socket
 import typing
 import discord
 import os
-from supabase import create_client 
+#from supabase import create_client 
 from dotenv import load_dotenv
 
 load_dotenv()
-url= os.environ.get("SUPABASE_URL")
-key= os.environ.get("SUPABASE_KEY")
-supabase = create_client(url, key)
+""" url= os.environ.get("SUPABASE_URL")
+key= os.environ.get("SUPABASE_KEY") """
+#supabase = create_client(url, key)
 
 # Define references to each table
-usersTable = supabase.table("users")
+""" usersTable = supabase.table("users")
 infoChannelsTable = supabase.table("info_channels")
 vcGeneratorsTable = supabase.table("vcGenerators")
 temporaryVCTable = supabase.table("temporaryVC")
@@ -22,7 +22,7 @@ lockedPlayersTable = supabase.table("lockedplayers")
 cooldownsTable = supabase.table("cooldowns")
 statsTable = supabase.table("stats")
 betsTable = supabase.table("bets")
-walletsTable = supabase.table("wallets")
+walletsTable = supabase.table("wallets") """
 
 red = 0xFF5733
 blue = 0x0CCFFF
@@ -372,7 +372,7 @@ async def get_user_id(guild, person):
             raise ValueError("Invalid person type")
 
         # Insert or update user in users table
-        if userID:
+        """ if userID:
             try:
                 usersTable.upsert({"user_id": userID}, on_conflict=["user_id"]).execute()
                 
@@ -383,7 +383,7 @@ async def get_user_id(guild, person):
                     return None
 
             except Exception as e:
-                print(f"Error executing SQL operation: {e}")
+                print(f"Error executing SQL operation: {e}") """
     
     except Exception as e:
         print(f"Error fetching user ID: {e}")
@@ -401,7 +401,7 @@ async def get_username(guild, person):
 
     return username
 
-async def initialiseDatabasefromTextfiles(guild):
+""" async def initialiseDatabasefromTextfiles(guild):
     await log(f'Initialising database from textfiles')
 
     # SetChannels
@@ -521,4 +521,4 @@ async def initialiseDatabasefromTextfiles(guild):
                     betsTable.upsert({"player_id": playerID, "user_id": userID, "coins": coins, "created_at": timeBet}).execute()
 
     await log("DB Init done!")
-    return
+    return """
