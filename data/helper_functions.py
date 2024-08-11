@@ -37,10 +37,12 @@ if (socket.gethostname() == "Lukas-Desktop"):
     osrl_Server = 1150003077961756706
     log_channel = 1212470152000442429
     ladder_channel = 1212470890172780615
+    commands_channel = 1271759730779357184
 else:
     osrl_Server = 979020400765841462
     log_channel = 1199387324904112178
     ladder_channel = 1193288442260488402
+    commands_channel = 1098739590820540506
 
 bot_instance = None
 
@@ -329,8 +331,6 @@ async def assign_mr_moneybags_role(guild):
             # Add the role to the user if they do not already have it
             await mr_moneybags_user.add_roles(role)
             await log(f"Assigned 'Mr. Moneybags' role to {mr_moneybags_user.display_name}")
-        else:
-            await log(f"{mr_moneybags_user.display_name} already has the 'Mr. Moneybags' role")
 
     return str(mr_moneybags_user.id)
 
@@ -394,7 +394,7 @@ async def get_username(guild, person):
     user = guild.get_member(int(person))
     if user == None:
         await log(f'Error while trying to get the username of one of these users: {person}')
-        usersTable.delete().eq("user_id", person).execute()
+        #usersTable.delete().eq("user_id", person).execute()
         return None
     else:
         username = user.display_name

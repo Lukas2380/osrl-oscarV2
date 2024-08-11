@@ -36,7 +36,7 @@ class Ladderbetting_cog(commands.Cog):
         # Add 100 coins to the wallet of the winner
         currentCoinsOfWinner = getWallet(winner)
         currentCoinsOfLoser = getWallet(loser)
-        channel = interaction.guild.get_channel(1098739590820540506)
+        channel = interaction.guild.get_channel(commands_channel)
 
         for wallet in wallets:
             if winner in wallet:
@@ -46,7 +46,7 @@ class Ladderbetting_cog(commands.Cog):
             elif loser in wallet:
                 wallets[wallets.index(wallet)] = f'{loser} - {str(int(currentCoinsOfLoser) + 25)}'
                 loserUser = await self.bot.fetch_user(int(loser))
-                await channel.send(f'{loserUser.mention}, you gained 25 coins! Your new balance is {str(int(currentCoinsOfWinner) + 25)} coins.')
+                await channel.send(f'{loserUser.mention}, you gained 25 coins! Your new balance is {str(int(currentCoinsOfLoser) + 25)} coins.')
 
         # Get every person who bet on this player and remove all the bets from this challenge
         betsToRemove = []
@@ -67,18 +67,21 @@ class Ladderbetting_cog(commands.Cog):
                 if datetime.strptime(time, "%Y-%m-%d %H:%M:%S") + timedelta(minutes=10) > datetime.now():
                     betOnTime = False
                     betsToIgnore.append(bet)
-                if winner in personWhoGotBetOn and betOnTime:
-                    winners.append(f"{personWhoBet} - {bettingAmount}")
-                    poolOfWinnerCoins += int(bettingAmount)
-                    betsToRemove.append(bet)
-                elif loser in personWhoGotBetOn and betOnTime:
+
+                if winner in personWhoGotBetOn and betOnTime:               #if person bet on winner and bet is on time
+                    winners.append(f"{personWhoBet} - {bettingAmount}")     #append "who bet - how much did they bet" to winners list
+                    poolOfWinnerCoins += int(bettingAmount)                 #increase pool of winner coins by "how much did they bet"
+                    betsToRemove.append(bet)                                #delete bet afterwards
+
+                elif loser in personWhoGotBetOn and betOnTime:              #if person bet on loser and bet is on time
                     losers.setdefault(personWhoBet, 0)
-                    losers[personWhoBet] += int(bettingAmount)
+                    losers[personWhoBet] += int(bettingAmount)              #put "who bet - how much did they bet" on losers dictionary
 
-                    poolOfLoserCoins += int(bettingAmount)
-                    betsToRemove.append(bet)
+                    poolOfLoserCoins += int(bettingAmount)                  #increase pool of loser coins by "how much did they bet"
+                    betsToRemove.append(bet)                                #delete bet afterwards
 
-
+        # Delete all the bets that we just went through in that for loop + get the multiplier for how much the person receives after
+        # Example: 3 bets: 100 coins bet on loser, 80 coins bet on winner, 20 coins bet on winner. 100 coins bet looses all, 80 coins bet gets 80% of looser coin pool ...
         for bet in betsToRemove:
             personWhoBet = bet.split(' - ')[1]
             bettingAmount = bet.split(' - ')[2]
@@ -104,7 +107,7 @@ class Ladderbetting_cog(commands.Cog):
                     currentCoins = getWallet(person)
                     wallets[wallets.index(wallet)] = f'{person} - {str(int(currentCoins) + coinsback[person])}'
                     user = await self.bot.fetch_user(int(person))
-                    await channel.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because your bet was placed too close to the end of the challenge.')
+                    await channel.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because your bet was placed to close to the end of the challenge.')
                     break
 
         writeToFile("bets", bets)
@@ -122,7 +125,7 @@ class Ladderbetting_cog(commands.Cog):
                         wallets[wallets.index(wallet)] = f"{loserId} - {str(newWalletAmount)}"
                         # Notify the user
                         loserUser = await self.bot.fetch_user(int(loserId))
-                        await channel.send(f'{loserUser.mention}, there were no bets on the other side, so your bet of {betOfLoser} coins has been refunded. Your new balance is {newWalletAmount} coins.')
+                        await channel.send(f'{loserUser.mention}, there were no bets on the other side, so your bet of {betOfLoser} coins has been refunded. Your balance is {newWalletAmount} coins.')
             
             for winner in winners:
                 winnerId = winner.split(' - ')[0]
@@ -135,8 +138,7 @@ class Ladderbetting_cog(commands.Cog):
                         wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
                         # Notify the user
                         winnerUser = await self.bot.fetch_user(int(winnerId))
-                        await channel.send(f'{winnerUser.mention}, there were no bets on the other side, so your bet of {betOfWinner} coins has been refunded. Your new balance is {newWalletAmount} coins.')
-
+                        await channel.send(f'{winnerUser.mention}, there were no bets on the other side, so your bet of {betOfWinner} coins has been refunded. Your balance is {newWalletAmount} coins.')
         else:
             # There are bets on both sides
             for winner in winners:
@@ -145,15 +147,14 @@ class Ladderbetting_cog(commands.Cog):
                 multiplier = float(winner.split(' - ')[2])
 
                 for wallet in wallets:
-                    if winnerId in wallet:
-                        oldWalletAmount = int(wallet.split(' - ')[1])
-                        gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
-                        # New entry: "player id - (old wallet amount + bet + share of loser pool)"
-                        newWalletAmount = oldWalletAmount + gain
-                        wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
-                        # Notify the user
-                        winnerUser = await self.bot.fetch_user(int(winnerId))
-                        await channel.send(f'{winnerUser.mention}, you gained {gain} coins! Your new balance is {newWalletAmount} coins.')
+                    oldWalletAmount = getWallet(winnerId)
+                    gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
+                    # New entry: "player id - (old wallet amount + bet + share of loser pool)"
+                    newWalletAmount = oldWalletAmount + gain
+                    wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
+                    # Notify the user
+                    winnerUser = await self.bot.fetch_user(int(winnerId))
+                    await channel.send(f'{winnerUser.mention}, you gained {gain} coins! Your new balance is {newWalletAmount} coins.')
 
             for loser in losers:
                 loserId = loser
@@ -176,8 +177,6 @@ class Ladderbetting_cog(commands.Cog):
 
         await assign_mr_moneybags_role(interaction.guild)
 
-
-
     async def placeBet(self, interaction, user, player, amount):        
         bets.append(f"{player} - {user} - {str(amount)} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
@@ -194,6 +193,7 @@ class Ladderbetting_cog(commands.Cog):
         return self.getBetsFromUserOnPlayer(user, player)
 
     async def removeAllBetsFromChallenge(self, interaction, challenge):
+        channel = interaction.guild.get_channel(commands_channel)
         player1, player2, _, _ = challenge.split(' - ')
         coinsback = {}
         betstoRemove = []
@@ -214,7 +214,7 @@ class Ladderbetting_cog(commands.Cog):
                         currentCoins = getWallet(person)
                         wallets[wallets.index(wallet)] = f'{person} - {str(int(currentCoins) + coinsback[person])}'
                         user = await self.bot.fetch_user(int(person))
-                        await interaction.followup.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because the challenge wasnt completed.')
+                        await channel.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because the challenge wasnt completed.')
                         break
 
             writeToFile("bets", bets)
@@ -290,7 +290,7 @@ class Ladderbetting_cog(commands.Cog):
         await interaction.response.defer()
 
         if player.bot:
-            await interaction.followup.send(embed=Embed(title="Cant get this wallet", description="This person is a bot and doesnt have a wallet.", color="red"))
+            await interaction.followup.send(embed=Embed(title="Cant get this wallet", description="This person is a bot and doesnt have a wallet.", color=red))
             return
 
         user = str(player.id)
@@ -480,10 +480,7 @@ class Ladderbetting_cog(commands.Cog):
 
         for wallet in wallets:
             if user_id in wallet:
-                if user_id == "231704982091595779":
-                    wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet - (coins_to_add + activityCoinsVC + activityCoinsMessages)}"
-                else:
-                    wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
+                wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
                 await log(f"{await get_username(interaction.guild, user_id)} (Had: {coins_in_wallet}, Random: {coins_to_add}, VC: {activityBonusVCTime.get(str(user_id), 0)}, Messages: {activityBonusMessages.get(str(user_id), 0)})")
 
         activityBonusVCTime[str(user_id)] = 0
@@ -501,7 +498,7 @@ class Ladderbetting_cog(commands.Cog):
         await interaction.followup.send(
             embed=Embed(
                 title="Coins added",
-                description=f"{coins_to_add + activityCoinsVC + activityCoinsMessages} coins were added to your wallet!",
+                description=f"{coins_to_add + activityCoinsVC + activityCoinsMessages} coins were added to your wallet!\nYou now have **{coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}** coins.",
                 color=green
             )
         )

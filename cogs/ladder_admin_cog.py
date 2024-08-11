@@ -19,7 +19,7 @@ class LadderAdmin_cog(commands.Cog):
         await interaction.response.defer()
 
         if player.bot:
-            await interaction.followup.send(embed=Embed(title="Cant add this person to the ladder.", description="This person is a bot and cant be on the ladder.", color="red"))
+            await interaction.followup.send(embed=Embed(title="Cant add this person to the ladder.", description="This person is a bot and cant be on the ladder.", color=red))
             return
 
         alreadyIsInLadder = False
