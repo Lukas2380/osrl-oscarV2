@@ -46,20 +46,24 @@ async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGen
     await log(f'Bot reloaded extension: cogs.{extension}')
     await interaction.followup.send(f"Bot reloaded extension: {extension}")
 
-@bot.event
-async def on_error(event, *args, **kwargs):
-    error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
-    error_message += traceback.format_exc() 
-    await log(error_message, isError = True)
+# Dictionary to map non-standard time zone names to valid pytz time zones
+timezone_aliases = {
+    "CEST": "Europe/Berlin",
+    "PST": "US/Pacific",
+    "PDT": "US/Pacific",
+    "CST": "US/Central",
+    # Add more custom mappings as needed
+}
 
-def get_default_date():
-    return datetime.now().strftime("%Y-%m-%d")
+def localize_datetime(naive_datetime, timezone):
+    # Convert the timezone alias to a valid timezone name if it exists
+    timezone = timezone_aliases.get(timezone.upper(), timezone)
 
-def localize_datetime(dt, tz_name):
-    """Provide a timezone-aware object for a given datetime and timezone name"""
-    assert dt.tzinfo is None
-    timezone = pytz.timezone(tz_name)
-    return timezone.localize(dt)
+    # Get the pytz timezone object
+    tz = pytz.timezone(timezone)
+    
+    # Localize the naive datetime
+    return tz.localize(naive_datetime)
 
 @bot.tree.command(name="timestamp", description="Generate a Discord timestamp")
 @app_commands.describe(
@@ -67,7 +71,7 @@ def localize_datetime(dt, tz_name):
     timezone="Your local timezone (e.g., 'UTC', 'America/New_York')",
     date="Date in YYYY-MM-DD format (default is today's date)"
 )
-async def timestamp(interaction: discord.Interaction, time: str, timezone: str, date: str = get_default_date()):
+async def timestamp(interaction: discord.Interaction, time: str, timezone: str, date: str = datetime.now().strftime("%Y-%m-%d")):
     try:
         # Parse the date and time
         naive_datetime = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
@@ -157,6 +161,12 @@ async def on_tree_error(interaction: discord.Interaction, error: app_commands.Ap
     except Exception as e:
         await log(f"An error occurred while handling a command tree error: {e}", isError = True)
 bot.tree.on_error = on_tree_error
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    error_message = f"An error occurred in {event}: {args} {kwargs}\n\n"
+    error_message += traceback.format_exc() 
+    await log(error_message, isError = True)
 
 async def main():
     await bot.start(TOKEN)
