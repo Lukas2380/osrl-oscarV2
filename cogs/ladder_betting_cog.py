@@ -473,7 +473,7 @@ class Ladderbetting_cog(commands.Cog):
 
         # Allow the user to claim coins
         coins_in_wallet = int(getWallet(user_id))
-        coins_to_add = random.randint(0, 25)
+        coins_to_add = random.randint(1, 25)
         # Retrieve activity bonus coins from both sources
         activityCoinsVC = activityBonusVCTime.get(str(user_id), 0)
         activityCoinsMessages = activityBonusMessages.get(str(user_id), 0)
@@ -505,42 +505,43 @@ class Ladderbetting_cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        # Add to activity bonus
-        if message.author.id != self.bot.user.id:
-            user_id = str(message.author.id)
-            current_time = time.time()
+        if channelisValid(message.channel.id):
+            # Add to activity bonus
+            if message.author.id != self.bot.user.id:
+                user_id = str(message.author.id)
+                current_time = time.time()
 
-            # Check if the user has a last bonus time
-            if user_id in self.lastBonusTime:
-                last_bonus_time = self.lastBonusTime[user_id]
-                # Calculate the time difference since the last bonus
-                time_difference = current_time - last_bonus_time
+                # Check if the user has a last bonus time
+                if user_id in self.lastBonusTime:
+                    last_bonus_time = self.lastBonusTime[user_id]
+                    # Calculate the time difference since the last bonus
+                    time_difference = current_time - last_bonus_time
 
-                # If the time difference is less than the cooldown period, skip awarding bonus
-                if time_difference < self.cooldown_period:
-                    return
+                    # If the time difference is less than the cooldown period, skip awarding bonus
+                    if time_difference < self.cooldown_period:
+                        return
 
-            activityBonusMessages.setdefault(str(message.author.id), 0)
-            if activityBonusMessages[str(message.author.id)] < 25:
-                activityBonusMessages[str(message.author.id)] += 2
-                if activityBonusMessages[str(message.author.id)] > 25:
-                    activityBonusMessages[str(message.author.id)] = 25
-                await log(f"Added 2 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
-                writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
+                activityBonusMessages.setdefault(str(message.author.id), 0)
+                if activityBonusMessages[str(message.author.id)] < 25:
+                    activityBonusMessages[str(message.author.id)] += 2
+                    if activityBonusMessages[str(message.author.id)] > 25:
+                        activityBonusMessages[str(message.author.id)] = 25
+                    await log(f"Added 2 coins to {message.author.name}'s wallet, they now have: {activityBonusMessages[str(message.author.id)]}")
+                    writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
 
-            self.lastBonusTime[user_id] = current_time
+                self.lastBonusTime[user_id] = current_time
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         # If a user joins a voice channel
         if before.channel is None and after.channel is not None:
-            if after.channel.id == 1149912179244531772:
+            if not channelisValid(after.channel.id):
                 return
             self.voiceEntryTime[member.id] = time.time()
 
         # If a user leaves a voice channel
         if before.channel is not None and after.channel is None:
-            if before.channel.id == 1149912179244531772:
+            if not channelisValid(after.channel.id):
                 return
             entry_time = self.voiceEntryTime.get(member.id)
             if entry_time:
@@ -565,6 +566,24 @@ class Ladderbetting_cog(commands.Cog):
                 
                 # Reset the entry time
                 del self.voiceEntryTime[member.id]
+
+def channelisValid(channelid):
+    # list of channels which shouldnt be counted towards the coin reward since they are mod only for example
+    adminCommands = 1099011452389568673
+    adminChat = 1083545029064273940
+    adminCommandChannel = 1093592217353998336
+    problemChildren = 1272687110851264614
+    coachesChat = 1071486425041747968
+    communityAnnouncements = 1083388944265252904
+    crossPlatformGameList = 1108592729384038440
+
+    afkvc = 1149912179244531772
+    modvc = 1071523960082141234
+
+    if channelid in [adminCommands, adminChat, adminCommandChannel, problemChildren, coachesChat, communityAnnouncements, crossPlatformGameList, afkvc, modvc]:
+        return False
+
+    return True
 
 def getWallet(user):
     userInWallets = False
