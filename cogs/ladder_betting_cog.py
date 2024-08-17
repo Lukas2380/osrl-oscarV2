@@ -535,13 +535,13 @@ class Ladderbetting_cog(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         # If a user joins a voice channel
         if before.channel is None and after.channel is not None:
-            if not channelisValid(after.channel.id):
+            if not channelisValid(after.channel):
                 return
             self.voiceEntryTime[member.id] = time.time()
 
         # If a user leaves a voice channel
         if before.channel is not None and after.channel is None:
-            if not channelisValid(after.channel.id):
+            if not channelisValid(after.channel):
                 return
             entry_time = self.voiceEntryTime.get(member.id)
             if entry_time:
