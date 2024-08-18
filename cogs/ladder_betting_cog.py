@@ -150,7 +150,7 @@ class Ladderbetting_cog(commands.Cog):
                     oldWalletAmount = getWallet(winnerId)
                     gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
                     # New entry: "player id - (old wallet amount + bet + share of loser pool)"
-                    newWalletAmount = oldWalletAmount + gain
+                    newWalletAmount = int(oldWalletAmount) + int(gain)
                     wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
                     # Notify the user
                     winnerUser = await self.bot.fetch_user(int(winnerId))
