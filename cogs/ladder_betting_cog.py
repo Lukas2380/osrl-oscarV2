@@ -147,14 +147,15 @@ class Ladderbetting_cog(commands.Cog):
                 multiplier = float(winner.split(' - ')[2])
 
                 for wallet in wallets:
-                    oldWalletAmount = getWallet(winnerId)
-                    gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
-                    # New entry: "player id - (old wallet amount + bet + share of loser pool)"
-                    newWalletAmount = int(oldWalletAmount) + int(gain)
-                    wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
-                    # Notify the user
-                    winnerUser = await self.bot.fetch_user(int(winnerId))
-                    await channel.send(f'{winnerUser.mention}, you gained {gain} coins! Your new balance is {newWalletAmount} coins.')
+                    if winnerId in wallet:
+                        oldWalletAmount = getWallet(winnerId)
+                        gain = int(betOfWinner) + int(poolOfLoserCoins * multiplier)
+                        # New entry: "player id - (old wallet amount + bet + share of loser pool)"
+                        newWalletAmount = int(oldWalletAmount) + int(gain)
+                        wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
+                        # Notify the user
+                        winnerUser = await self.bot.fetch_user(int(winnerId))
+                        await channel.send(f'{winnerUser.mention}, you gained {gain} coins! Your new balance is {newWalletAmount} coins.')
 
             for loser in losers:
                 loserId = loser

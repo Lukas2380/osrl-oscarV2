@@ -102,8 +102,10 @@ async def timestamp(interaction: discord.Interaction, time: str, timezone: str, 
 @bot.event
 async def on_ready():
     #await clearLogChannel()
-    await load_cogs()
-    
+    #await load_cogs()
+
+    await temporaryWalletsFix(bot)
+
     await log(f'Logged in as {bot.user.name}')
 
     # Print all the bot's permissions in the server
@@ -120,6 +122,41 @@ async def on_ready():
         await log("Couldnt load commands")
         
     bot.vc_generators = {}
+
+async def temporaryWalletsFix(bot):
+    commandChannel = 1098739590820540506
+    channel = bot.get_channel(commandChannel)
+    lostwallets = {}
+    
+    async for message in channel.history(limit=7000, oldest_first=False):
+        if message.embeds:
+            for embed in message.embeds:
+                if embed.title == "Coins added":
+                    # Get the interaction information
+                    interaction = message.interaction
+                    
+                    if interaction and "**" in embed.description:
+                        # Get the ID of the user who triggered the interaction
+                        user_id = interaction.user.id
+                        coins = embed.description.split("**")[1]
+
+                        #print(f"Command triggered by User ID: {user_id}, Username: {username}")
+                        if str(user_id) not in lostwallets:
+                            lostwallets[str(user_id)] = coins
+
+        elif "Your new balance is" in message.content and message.author.id == 1169606029844172932:
+            coins = message.content.split(" new balance is ")[1].split(" ")[0]
+            userId = message.content.split("<@")[1].split(">")[0]
+            
+            if userId not in lostwallets:
+                lostwallets[userId] = coins
+
+    for lostwallet in lostwallets:
+        print(f"Username: {lostwallet}, coins: {lostwallets[lostwallet]}")
+
+    for lostwallet in lostwallets:
+        username = await get_username(bot.get_guild(osrl_Server), lostwallet)
+        print(f"Username: {username}, coins: {lostwallets[lostwallet]}")
 
 async def clearLogChannel():
     guild = bot.get_guild(osrl_Server)
