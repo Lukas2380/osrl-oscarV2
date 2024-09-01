@@ -102,9 +102,9 @@ async def timestamp(interaction: discord.Interaction, time: str, timezone: str, 
 @bot.event
 async def on_ready():
     #await clearLogChannel()
-    #await load_cogs()
+    await load_cogs()
 
-    await temporaryWalletsFix(bot)
+    #await temporaryWalletsFix(bot)
 
     await log(f'Logged in as {bot.user.name}')
 
@@ -123,7 +123,8 @@ async def on_ready():
         
     bot.vc_generators = {}
 
-async def temporaryWalletsFix(bot):
+# This is for getting everybodies newest wallet amount if something breaks again (has the osrl ids)
+""" async def temporaryWalletsFix(bot):
     commandChannel = 1098739590820540506
     channel = bot.get_channel(commandChannel)
     lostwallets = {}
@@ -156,7 +157,7 @@ async def temporaryWalletsFix(bot):
 
     for lostwallet in lostwallets:
         username = await get_username(bot.get_guild(osrl_Server), lostwallet)
-        print(f"Username: {username}, coins: {lostwallets[lostwallet]}")
+        print(f"Username: {username}, coins: {lostwallets[lostwallet]}") """
 
 
 async def clearLogChannel():
