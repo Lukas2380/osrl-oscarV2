@@ -133,14 +133,14 @@ async def temporaryWalletsFix(bot):
             for embed in message.embeds:
                 if embed.title == "Coins added":
                     # Get the interaction information
-                    interaction = message.interaction
+                    interaction_metadata = message.interaction_metadata
                     
-                    if interaction and "**" in embed.description:
+                    if interaction_metadata and "**" in embed.description:
                         # Get the ID of the user who triggered the interaction
-                        user_id = interaction.user.id
+                        user_id = interaction_metadata.user.id
                         coins = embed.description.split("**")[1]
 
-                        #print(f"Command triggered by User ID: {user_id}, Username: {username}")
+                        # Add to the lostwallets dictionary
                         if str(user_id) not in lostwallets:
                             lostwallets[str(user_id)] = coins
 
@@ -152,11 +152,12 @@ async def temporaryWalletsFix(bot):
                 lostwallets[userId] = coins
 
     for lostwallet in lostwallets:
-        print(f"Username: {lostwallet}, coins: {lostwallets[lostwallet]}")
+        print(f"User ID: {lostwallet}, coins: {lostwallets[lostwallet]}")
 
     for lostwallet in lostwallets:
         username = await get_username(bot.get_guild(osrl_Server), lostwallet)
         print(f"Username: {username}, coins: {lostwallets[lostwallet]}")
+
 
 async def clearLogChannel():
     guild = bot.get_guild(osrl_Server)
