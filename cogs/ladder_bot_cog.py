@@ -211,8 +211,11 @@ class LadderBot_cog(commands.Cog):
         for lockedPlayer in locked_players:
             if playerID in lockedPlayer:
                 playerIsLocked = True
-                lockedStatus = "Player is currently locked"
-                playerRank = lockedPlayer.split(" - ")[0]
+
+                rank, _, date_locked = lockedPlayer.split(' - ')
+                weeks = max(0, ((datetime.now() - datetime.strptime(date_locked, "%x")).days // 7) -2) # get the num of weeks locked, 2 are free, if less than 0 set to 0
+                playerRank = min(int(rank)-1 + weeks , len(leaderboard) + 1)
+                lockedStatus = f"Player is locked since {date_locked}"
 
         if not playerIsLocked:
             # Show Position on the ladder
@@ -220,23 +223,23 @@ class LadderBot_cog(commands.Cog):
                 if playerID in ladderEntry:
                     playerRank = leaderboard.index(ladderEntry) + 1
 
-            # Show if person is in an active challenge
-            active_challenge_info = None
-            for active_challenge in activeChallenges:
-                if playerID in active_challenge:
-                    firstPlayer, secondPlayer, date, isGuardian  = active_challenge.split(" - ") 
-                    firstPlayerPosition = leaderboard.index(firstPlayer) + 1
-                    secondPlayerPosition = leaderboard.index(secondPlayer) + 1
+        # Show if person is in an active challenge
+        active_challenge_info = "/"
+        for active_challenge in activeChallenges:
+            if playerID in active_challenge:
+                firstPlayer, secondPlayer, date, isGuardian  = active_challenge.split(" - ") 
+                firstPlayerPosition = leaderboard.index(firstPlayer) + 1
+                secondPlayerPosition = leaderboard.index(secondPlayer) + 1
 
-                    firstPlayerName = await get_username(interaction.guild, firstPlayer)
-                    secondPlayerName = await get_username(interaction.guild, secondPlayer)
-                    
-                    if len(firstPlayerName+secondPlayerName) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
-                        firstPlayerName = firstPlayerName[:20]
-                        secondPlayerName = secondPlayerName[:20]
-                    
-                    # Write and format the output
-                    active_challenge_info = "{:^}. {} ⚔️ {}. {}\n".format(firstPlayerPosition, firstPlayerName, secondPlayerPosition, secondPlayerName)
+                firstPlayerName = await get_username(interaction.guild, firstPlayer)
+                secondPlayerName = await get_username(interaction.guild, secondPlayer)
+                
+                if len(firstPlayerName+secondPlayerName) > 40: # 28 is the max length of the message (+nr+swords+date+spaces) that can be displayed on phone
+                    firstPlayerName = firstPlayerName[:20]
+                    secondPlayerName = secondPlayerName[:20]
+                
+                # Write and format the output
+                active_challenge_info = "{:^}. {} ⚔️ {}. {}\n".format(firstPlayerPosition, firstPlayerName, secondPlayerPosition, secondPlayerName)
 
         # Show Wins/Losses/Current Streak
         player_stats = None
@@ -263,20 +266,19 @@ class LadderBot_cog(commands.Cog):
 
         embed.add_field(name="", value="", inline=False)
 
-        if not playerIsLocked:
-            if active_challenge_info:
-                embed.add_field(name="Current Challenge", value=f"```{active_challenge_info}```", inline=False)
+        if active_challenge_info:
+            embed.add_field(name="Current Challenge", value=f"```{active_challenge_info}```", inline=False)
 
-            if player_stats:
-                _, wins, losses, current_streak = player_stats.split(' - ')  
-                embed.add_field(name="Wins: ", value=f"```{wins}```", inline=True)
-                embed.add_field(name="Losses: ", value=f"```{losses}```", inline=True)
-                embed.add_field(name="Streak: ", value=f"```{current_streak}```", inline=True)
+        if player_stats:
+            _, wins, losses, current_streak = player_stats.split(' - ')  
+            embed.add_field(name="Wins: ", value=f"```{wins}```", inline=True)
+            embed.add_field(name="Losses: ", value=f"```{losses}```", inline=True)
+            embed.add_field(name="Streak: ", value=f"```{current_streak}```", inline=True)
 
-            if player_streaks:
-                _, highest_loss_streak, highest_win_streak = player_streaks.split(' - ') 
-                embed.add_field(name="Highest Win Streak", value=f"```{highest_win_streak}```", inline=True)
-                embed.add_field(name="Highest Loss Streak", value=f"```{highest_loss_streak}```", inline=True)
+        if player_streaks:
+            _, highest_loss_streak, highest_win_streak = player_streaks.split(' - ') 
+            embed.add_field(name="Highest Win Streak", value=f"```{highest_win_streak}```", inline=True)
+            embed.add_field(name="Highest Loss Streak", value=f"```{highest_loss_streak}```", inline=True)
 
         await interaction.followup.send(embed=embed)
 
