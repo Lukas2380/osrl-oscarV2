@@ -107,7 +107,7 @@ class Ladderbetting_cog(commands.Cog):
                     currentCoins = getWallet(person)
                     wallets[wallets.index(wallet)] = f'{person} - {str(int(currentCoins) + coinsback[person])}'
                     user = await self.bot.fetch_user(int(person))
-                    await channel.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because your bet was placed to close to the end of the challenge.')
+                    await channel.send(f'{user.mention} (Bet: {coinsback[person]}), your coins were put back into your wallet because your bet was placed to close to the end of the challenge.')
                     break
 
         writeToFile("bets", bets)
@@ -125,7 +125,7 @@ class Ladderbetting_cog(commands.Cog):
                         wallets[wallets.index(wallet)] = f"{loserId} - {str(newWalletAmount)}"
                         # Notify the user
                         loserUser = await self.bot.fetch_user(int(loserId))
-                        await channel.send(f'{loserUser.mention}, there were no bets on the other side, so your bet of {betOfLoser} coins has been refunded. Your balance is {newWalletAmount} coins.')
+                        await channel.send(f'{loserUser.mention} (Bet: {betOfLoser}), there were no bets on the other side, so your coins have been refunded. Your balance is {newWalletAmount} coins.')
             
             for winner in winners:
                 winnerId = winner.split(' - ')[0]
@@ -138,7 +138,7 @@ class Ladderbetting_cog(commands.Cog):
                         wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
                         # Notify the user
                         winnerUser = await self.bot.fetch_user(int(winnerId))
-                        await channel.send(f'{winnerUser.mention}, there were no bets on the other side, so your bet of {betOfWinner} coins has been refunded. Your balance is {newWalletAmount} coins.')
+                        await channel.send(f'{winnerUser.mention} (Bet: {betOfWinner}), there were no bets on the other side, so your coins have been refunded. Your balance is {newWalletAmount} coins.')
         else:
             # There are bets on both sides
             for winner in winners:
@@ -155,7 +155,7 @@ class Ladderbetting_cog(commands.Cog):
                         wallets[wallets.index(wallet)] = f"{winnerId} - {str(newWalletAmount)}"
                         # Notify the user
                         winnerUser = await self.bot.fetch_user(int(winnerId))
-                        await channel.send(f'{winnerUser.mention}, you gained {gain} coins! Your new balance is {newWalletAmount} coins.')
+                        await channel.send(f'{winnerUser.mention} (Bet: {betOfWinner}), you gained {int(poolOfLoserCoins * multiplier)} coins! Your new balance is {newWalletAmount} coins.')
 
             for loser in losers:
                 loserId = loser
@@ -163,7 +163,7 @@ class Ladderbetting_cog(commands.Cog):
                 walletAmount = getWallet(loserId)
 
                 loserUser = await self.bot.fetch_user(int(loserId))
-                await channel.send(f'{loserUser.mention}, you lost {betOfLoser} coins! Your balance is {walletAmount} coins.')
+                await channel.send(f'{loserUser.mention} (Bet: {betOfLoser}), you lost {betOfLoser} coins! Your balance is {walletAmount} coins.')
 
                 #for wallet in wallets:
                     #WalletAmount = int(wallet.split(' - ')[1])
@@ -215,7 +215,7 @@ class Ladderbetting_cog(commands.Cog):
                         currentCoins = getWallet(person)
                         wallets[wallets.index(wallet)] = f'{person} - {str(int(currentCoins) + coinsback[person])}'
                         user = await self.bot.fetch_user(int(person))
-                        await channel.send(f'{user.mention}, {coinsback[person]} coins were put back into your wallet because the challenge wasnt completed.')
+                        await channel.send(f'{user.mention} (Bet: {coinsback[person]}), your coins were put back into your wallet because the challenge wasnt completed.')
                         break
 
             writeToFile("bets", bets)
