@@ -153,8 +153,9 @@ class LadderAdmin_cog(commands.Cog):
                 # Insert them into the leaderboard
                 rank, _, date_locked = locked_player.split(' - ')
                 weeks = max(0, ((datetime.now() - datetime.strptime(date_locked, "%x")).days // 7) -2) # get the num of weeks locked, 2 are free, if less than 0 set to 0
+                playerRank = min(int(rank)-1 + weeks , len(leaderboard) + 1)
 
-                leaderboard.insert(int(rank)-1 + weeks, str(player.id)) 
+                leaderboard.insert(playerRank, str(player.id)) 
 
                 writeToFile('lockedPlayers', locked_players)
                 writeToFile('leaderboard', leaderboard)
