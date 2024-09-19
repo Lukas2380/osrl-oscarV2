@@ -546,24 +546,27 @@ class LadderBot_cog(commands.Cog):
     @app_commands.command(name="join", description="Join the ladder!")
     async def join(self, interaction):
         await interaction.response.defer()
-        alreadyIsInLadder = False
         player = interaction.user
 
         # Check if player is already in the leaderboard
         for leaderboardEntry in leaderboard:
             if str(player.id) in leaderboardEntry:
                 response = Embed(title="Cant join the ladder", description=f'{player.mention}, you are already in the ladder', color=red)
-                alreadyIsInLadder = True
-                break
+                await interaction.followup.send(embed=response)
+                return
 
-        if not alreadyIsInLadder:
-            # Add player to the leaderboard
-            leaderboard.append(str(player.id)) 
-            writeToFile('leaderboard', leaderboard)
-            
-            response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
-            await update_ladder(interaction.guild)
+        # Check if player is currently locked
+        for lockedPlayer in locked_players:
+            if str(player.id) in lockedPlayer:
+                response = Embed(title="Cant join the ladder", description=f'{player.mention}, you are currently locked, please ask to a mod to unlock you', color=red)
+                await interaction.followup.send(embed=response)
+                return
 
+        # Add player to the leaderboard
+        leaderboard.append(str(player.id)) 
+        writeToFile('leaderboard', leaderboard)
+        response = Embed(title='Player added', description=f'Try not to get wrecked', color=blue)
+        await update_ladder(interaction.guild)
         await interaction.followup.send(embed=response)
 
     @app_commands.command(name="cointoss", description="Toss a coin!")
