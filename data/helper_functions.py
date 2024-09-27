@@ -3,6 +3,8 @@ import socket
 import typing
 import discord
 import os
+import shutil
+from datetime import datetime
 #from supabase import create_client 
 from dotenv import load_dotenv
 
@@ -133,15 +135,47 @@ async def log(output: str, isError: bool = False):
     
     await channel.send(output)
 
+def backup_file(file):
+    # Create the backup directory if it doesn't exist
+    backup_dir = f"./data/ladder/backups/{file}/"
+    os.makedirs(backup_dir, exist_ok=True)
+
+    # Create a timestamp for the backup
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Construct the backup file name with the backup directory
+    backup_file_name = f"{backup_dir}{file}_{timestamp}.bak"
+
+    # Copy the original file to the backup file
+    shutil.copy(f'./data/ladder/{file}.txt', backup_file_name)
+
+
 def writeToFile(file: str, mylist: list):
-    with open(f'./data/ladder/{file}.txt', "w") as file:
+    file_path = f'./data/ladder/{file}.txt'
+    
+    # Create a backup before writing new data
+    try:
+        backup_file(file)
+    except FileNotFoundError:
+        print(f"No previous file to back up for {file_path}. A new file will be created.")
+
+    # Write the new data to the file
+    with open(file_path, "w") as f:
         for entry in mylist:
-            file.write(entry+'\n')
+            f.write(entry + '\n')
 
 def writeDictToFile(file: str, myDict: dict):
-    with open(f'./data/ladder/{file}.txt', "w") as file:
+    file_path = f'./data/ladder/{file}.txt'
+    
+    # Create a backup before writing new data
+    try:
+        backup_file(file)
+    except FileNotFoundError:
+        print(f"No previous file to back up for {file_path}. A new file will be created.")
+
+    # Write the new data to the file
+    with open(file_path, "w") as f:
         for person, extraWallet in myDict.items():
-            file.write(f"{person} - {extraWallet}\n")
+            f.write(f"{person} - {extraWallet}\n")
 
 async def update_ladder(guild):
         channel = guild.get_channel(ladder_channel)

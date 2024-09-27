@@ -161,3 +161,5 @@ cython_debug/
 
 # Ignore all txt files
 *.txt
+
+*.bak
