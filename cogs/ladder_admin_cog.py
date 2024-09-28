@@ -128,14 +128,14 @@ class LadderAdmin_cog(commands.Cog):
                     writeToFile('leaderboard', leaderboard)
                     writeToFile('activeChallenges', activeChallenges)
 
-                    response=Embed(title='Player Locked', description=f'Player locked until further notice', color=blue)
+                    response=Embed(title='Player Locked', description=f'Player {player.mention} locked until further notice', color=blue)
                     await update_ladder(interaction.guild)
                     break
 
         if not foundPlayerInLeaderboard:
-            response = Embed(title='Player not found', description=f'Player was not found in the leaderboard')
+            response = Embed(title='Player not found', description=f'Player {player.mention} was not found in the leaderboard')
         elif alreadyLocked:
-            response = Embed(title='Player already locked', description=f'The player is already in the locked player list')
+            response = Embed(title='Player already locked', description=f'Player {player.mention} is already in the locked player list')
 
         await interaction.followup.send(embed=response)
 
@@ -153,7 +153,8 @@ class LadderAdmin_cog(commands.Cog):
                 # Insert them into the leaderboard
                 rank, _, date_locked = locked_player.split(' - ')
                 weeks = max(0, ((datetime.now() - datetime.strptime(date_locked, "%x")).days // 7) -2) # get the num of weeks locked, 2 are free, if less than 0 set to 0
-                playerRank = min(int(rank)-1 + weeks , len(leaderboard) + 1)
+                unlockRank = max(int(rank)-1 + weeks, 3) # Prevent people from unlocking into the top 3
+                playerRank = min(unlockRank , len(leaderboard) + 1)
 
                 leaderboard.insert(playerRank, str(player.id)) 
 
