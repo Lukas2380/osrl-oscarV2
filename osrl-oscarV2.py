@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import os
 import asyncio
 from random import randint
+import random
 import typing
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import discord
@@ -174,18 +175,23 @@ async def load_cogs():
 # Bang insultment corner #? todo: make it happen to the person who last lost a 1v1 ladder match
 @bot.event
 async def on_message(message):
-    # Check if the message is from the specific user (Bang)
-    if message.author.id == 547595456650412052:
-        # Check if the message is sent in the specific channel (General 1v1 discussion)
-        if message.channel.id == 1063890145897615370:
-            if False: #randint(1, 10) == 1
-                # Fetch insult from the API
+    # Check if the message is from the specific user (Bang: 547595456650412052, James: 697451352753963069)
+    if message.author.id == 697451352753963069:
+        # Check if the message is sent in the specific channel (General 1v1 discussion: 1063890145897615370, ISO Private: 1166508496578170951)
+        if message.channel.id == 1166508496578170951:
+            if randint(1, 1) == 1: 
+                """ # Fetch insult from the API
                 insult_api_url = 'https://evilinsult.com/generate_insult.php?lang=en&type=pirate'
                 response = requests.get(insult_api_url)
-                insult = response.text.strip()
+                insult = response.text.strip() """
 
-                # Reply with the insult
-                await message.channel.send(f"{message.author.mention}, {insult}")
+                if "<@&1083592526847545364>" in message.content: # Private Matches role ID: 1083592526847545364
+                    replies = ["Maybe","Depends","I guess","Hmmm, I could partake","Perhaps","Possibly", "Perchance"]
+
+                    # Reply with the insult
+                    #await message.channel.send(f"{message.author.mention}, {insult}")
+                    await asyncio.sleep(120)
+                    await message.channel.send(f"{random.choice(replies)}", reference = message)
 
 @bot.event
 async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
