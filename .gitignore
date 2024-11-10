@@ -163,5 +163,3 @@ cython_debug/
 *.txt
 
 *.bak
-
-data/rocketLeagueItems/inventories.json

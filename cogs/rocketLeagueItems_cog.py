@@ -180,7 +180,7 @@ class RocketLeagueItems(commands.Cog):
         # Add item attributes to the embed
         response.add_field(name="", value="", inline=False)
         response.add_field(name="Item", value=item["name"], inline=True)
-        response.add_field(name="Type", value=item.get("type", "-"), inline=True)
+        response.add_field(name="Type", value=item.get("type", "/"), inline=True)
         response.add_field(name="Vehicle", value=item.get("vehicle", "All"), inline=True)
 
         # Add paint and certification if they exist
