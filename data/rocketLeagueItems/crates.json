@@ -1,0 +1,104 @@
+{
+    "Champions Crate 1": {
+        "Rare": [
+            {
+                "name": "Pollo Caliente",
+                "type": "Decal",
+                "vehicle": "Dominus"
+            },
+            {
+                "name": "Vice",
+                "type": "Decal",
+                "vehicle": "Breakout"
+            },
+            {
+                "name": "Arcana",
+                "type": "Decal",
+                "vehicle": "Dominus"
+            },
+            {
+                "name": "Combo",
+                "type": "Decal",
+                "vehicle": "Takumi"
+            },
+            {
+                "name": "Shibuya",
+                "type": "Decal",
+                "vehicle": "Breakout"
+            }
+        ],
+        "Very Rare": [
+            {
+                "name": "Snakeskin",
+                "type": "Decal (Animated)",
+                "vehicle": "Dominus"
+            },
+            {
+                "name": "Dot Matrix",
+                "type": "Decal (Animated)",
+                "vehicle": "Breakout"
+            },
+            {
+                "name": "Anubis",
+                "type": "Decal (Animated)",
+                "vehicle": "Takumi"
+            },
+            {
+                "name": "Chakram",
+                "type": "Wheels",
+                "vehicle": "All"
+            }
+        ],
+        "Import": [
+            {
+                "name": "Dominus GT",
+                "type": "Body",
+                "vehicle": "/"
+            },
+            {
+                "name": "Trinity",
+                "type": "Rocket Boost",
+                "vehicle": "All"
+            },
+            {
+                "name": "Takumi RX-T",
+                "type": "Body",
+                "vehicle": "/"
+            }
+        ],
+        "Exotic": [
+            {
+                "name": "Photon",
+                "type": "Wheels",
+                "vehicle": "All"
+            },
+            {
+                "name": "Looper",
+                "type": "Wheels",
+                "vehicle": "All"
+            }
+        ],
+        "Black Market": [
+            {
+                "name": "Slipstream",
+                "type": "Decal (Animated)",
+                "vehicle": "All"
+            },
+            {
+                "name": "Parallax",
+                "type": "Decal (Animated)",
+                "vehicle": "All"
+            },
+            {
+                "name": "Labyrinth",
+                "type": "Decal (Animated)",
+                "vehicle": "All"
+            },
+            {
+                "name": "Heatwave",
+                "type": "Decal (Animated)",
+                "vehicle": "All"
+            }
+        ]
+    }
+}
