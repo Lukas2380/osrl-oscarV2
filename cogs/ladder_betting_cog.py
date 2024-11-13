@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 import math
 import random
@@ -25,6 +26,8 @@ class Ladderbetting_cog(commands.Cog):
         self.lastBonusTime = {}  # Dictionary to track the last bonus time for each user
         self.cooldown_period = 30  # Cooldown period in seconds (e.g., 60 seconds for 1 minute)
         self.voiceEntryTime = {}
+        # Define a lock to prevent race conditions
+        self.claim_lock = asyncio.Lock()
 
         #? todo: maybe showmatches for coins?
         #? todo: buy custom roles /have selection (/createrole, /swaprole)
@@ -444,65 +447,67 @@ class Ladderbetting_cog(commands.Cog):
         user_id = str(interaction.user.id)
         current_time = datetime.now()
 
-        # Check the last claim time for the user
-        if user_id in claimcoinsCooldown:
-            # Convert last_claim_date from string to datetime
-            last_claim_date = datetime.fromisoformat(claimcoinsCooldown[user_id])
+        # Lock the critical section to   prevent multiple claims
+        async with self.claim_lock:
+            # Check the last claim time for the user
+            if user_id in claimcoinsCooldown:
+                # Convert last_claim_date from string to datetime
+                last_claim_date = datetime.fromisoformat(claimcoinsCooldown[user_id])
 
-            # Calculate the time difference since the last claim
-            time_since_last_claim = current_time - last_claim_date
+                # Calculate the time difference since the last claim
+                time_since_last_claim = current_time - last_claim_date
 
-            # Calculate the remaining time until the user can claim again
-            remaining_time = timedelta(days=1) - time_since_last_claim
-            
-            if remaining_time > timedelta(0):
-                # Calculate the remaining days, hours, minutes, and seconds
-                days, seconds = divmod(remaining_time.total_seconds(), 86400)
-                hours, seconds = divmod(seconds, 3600)
-                minutes, seconds = divmod(seconds, 60)
+                # Calculate the remaining time until the user can claim again
+                remaining_time = timedelta(days=1) - time_since_last_claim
                 
-                # Create an embed with red color and the remaining time
-                embed = Embed(
-                    title="Your daily coin cooldown has not run out yet!",
-                    description=f"You still have to wait: **{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** \nbefore you can claim again.",
-                    color=red
+                if remaining_time > timedelta(0):
+                    # Calculate the remaining days, hours, minutes, and seconds
+                    days, seconds = divmod(remaining_time.total_seconds(), 86400)
+                    hours, seconds = divmod(seconds, 3600)
+                    minutes, seconds = divmod(seconds, 60)
+                    
+                    # Create an embed with red color and the remaining time
+                    embed = Embed(
+                        title="Your daily coin cooldown has not run out yet!",
+                        description=f"You still have to wait: **{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, and {int(seconds)} seconds** \nbefore you can claim again.",
+                        color=red
+                    )
+
+                    # Send the embed as a response
+                    await interaction.followup.send(embed=embed)
+                    return
+
+            # Allow the user to claim coins
+            coins_in_wallet = int(getWallet(user_id))
+            coins_to_add = random.randint(1, 25)
+            # Retrieve activity bonus coins from both sources
+            activityCoinsVC = activityBonusVCTime.get(str(user_id), 0)
+            activityCoinsMessages = activityBonusMessages.get(str(user_id), 0)
+
+            for wallet in wallets:
+                if user_id in wallet:
+                    wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
+                    await log(f"{await get_username(interaction.guild, user_id)} (Had: {coins_in_wallet}, Random: {coins_to_add}, VC: {activityBonusVCTime.get(str(user_id), 0)}, Messages: {activityBonusMessages.get(str(user_id), 0)})")
+
+            activityBonusVCTime[str(user_id)] = 0
+            activityBonusMessages[str(user_id)] = 0
+
+            # Update the last claim time for the user
+            claimcoinsCooldown[user_id] = str(current_time)
+
+            writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
+            writeDictToFile("wallets_activityBonusVCTime", activityBonusVCTime)
+            writeDictToFile("claimcoins_cooldown", claimcoinsCooldown)
+
+            await assign_mr_moneybags_role(interaction.guild)
+
+            await interaction.followup.send(
+                embed=Embed(
+                    title="Coins added",
+                    description=f"{coins_to_add + activityCoinsVC + activityCoinsMessages} coins were added to your wallet!\nYou now have **{coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}** coins.",
+                    color=green
                 )
-
-                # Send the embed as a response
-                await interaction.followup.send(embed=embed)
-                return
-
-        # Allow the user to claim coins
-        coins_in_wallet = int(getWallet(user_id))
-        coins_to_add = random.randint(1, 25)
-        # Retrieve activity bonus coins from both sources
-        activityCoinsVC = activityBonusVCTime.get(str(user_id), 0)
-        activityCoinsMessages = activityBonusMessages.get(str(user_id), 0)
-
-        for wallet in wallets:
-            if user_id in wallet:
-                wallets[wallets.index(wallet)] = f"{user_id} - {coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}"
-                await log(f"{await get_username(interaction.guild, user_id)} (Had: {coins_in_wallet}, Random: {coins_to_add}, VC: {activityBonusVCTime.get(str(user_id), 0)}, Messages: {activityBonusMessages.get(str(user_id), 0)})")
-
-        activityBonusVCTime[str(user_id)] = 0
-        activityBonusMessages[str(user_id)] = 0
-
-        # Update the last claim time for the user
-        claimcoinsCooldown[user_id] = str(current_time)
-
-        writeDictToFile("wallets_activityBonusMessages", activityBonusMessages)
-        writeDictToFile("wallets_activityBonusVCTime", activityBonusVCTime)
-        writeDictToFile("claimcoins_cooldown", claimcoinsCooldown)
-
-        await assign_mr_moneybags_role(interaction.guild)
-
-        await interaction.followup.send(
-            embed=Embed(
-                title="Coins added",
-                description=f"{coins_to_add + activityCoinsVC + activityCoinsMessages} coins were added to your wallet!\nYou now have **{coins_in_wallet + coins_to_add + activityCoinsVC + activityCoinsMessages}** coins.",
-                color=green
             )
-        )
 
     @commands.Cog.listener()
     async def on_message(self, message):
