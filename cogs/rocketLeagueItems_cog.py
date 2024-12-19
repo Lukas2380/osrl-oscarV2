@@ -1,3 +1,5 @@
+from io import BytesIO
+import io
 import typing
 import discord
 from discord import Color, Embed, app_commands
@@ -9,7 +11,7 @@ import os
 class RocketLeagueItems(commands.Cog):
     crate_names = []
 
-    # Define a dictionary to map paint names to hex color values
+# Define a dictionary to map paint names to hex color values
     paint_colors = {
         "Black": 0x1B1B1B,
         "Burnt Sienna": 0x8C4A2E,
@@ -66,7 +68,7 @@ class RocketLeagueItems(commands.Cog):
         with open("./data/rocketLeagueItems/inventories.json", "w") as file:
             json.dump(self.user_inventories, file, indent=4)
 
-    def get_item_attributes(self):
+    def get_item(self, crate_name):
         # Define drop rate thresholds
         rarity_rates = {
             "Rare": 55,
@@ -75,18 +77,12 @@ class RocketLeagueItems(commands.Cog):
             "Exotic": 4,
             "Black Market": 1
         }
-        
+
         # Paint and certification chances
         paint_chance = 25  # 25% chance for paint
         cert_chance = 25   # 25% chance for certification
-        
-        # All available paints and certifications
-        paints = [
-            "Black", "Burnt Sienna", "Cobalt", "Crimson", "Forest Green",
-            "Gold", "Grey", "Lime", "Orange", "Pink", "Purple",
-            "Saffron", "Sky Blue", "Titanium White"
-        ]
-        
+
+        # All available certifications
         certifications = [
             "Acrobat", "Aviator", "Goalkeeper", "Guardian", "Juggler", 
             "Paragon", "Playmaker", "Scorer", "Show-Off", "Sniper", 
@@ -104,23 +100,63 @@ class RocketLeagueItems(commands.Cog):
                 rarity = r
                 break
 
-        # Determine if item is painted
-        painted = random.uniform(0, 100) < paint_chance
-        paint = random.choice(paints) if painted else None
+        # Select a random item from the determined rarity category
+        random_item_index = random.randint(0, len(self.crates[crate_name][rarity]) - 1)
+        item = self.crates[crate_name][rarity][random_item_index]
 
-        # Determine if item is certified
+        # Get possible paints for the item
+        paints = item.get("Paints", None)
+
+        # Determine if the item is painted
+        painted = random.uniform(0, 100) < paint_chance
+        paint = random.choice(paints) if painted and paints else None
+
+        # Determine if the item is certified
         certified = random.uniform(0, 100) < cert_chance
         cert = random.choice(certifications) if certified else None
 
-        # Return the item attributes as a dictionary
-        return {
-            "rarity": rarity,
-            "paint": paint,
-            "certification": cert
+        # Prepare the Versions dictionary
+        item_versions = {
+            "Rarity": rarity,
+            "Paint": paint,
+            "Certification": cert,
+            "Crate": crate_name
         }
 
+        # Remove the "Paints" key if it exists
+        if "Paints" in item:
+            del item["Paints"]
+
+        # Attach the Versions dictionary to the item
+        item["Versions"] = [item_versions]
+
+        return item
+
+
+    async def crates_autocomplete(
+        self, 
+        interaction: discord.Interaction, 
+        current: str
+    ) -> typing.List[app_commands.Choice[str]]:
+        # If no input, return the first 25 items
+        if not current:
+            return [
+                app_commands.Choice(name=crate, value=crate)
+                for crate in self.crate_names[:25]  # Only show the first 25 items
+            ]
+        
+        # If there is input, filter the list and limit to 25 items
+        filtered_crates = [
+            crate for crate in self.crate_names if current.lower() in crate.lower()
+        ]
+        return [
+            app_commands.Choice(name=crate, value=crate)
+            for crate in filtered_crates[:25]  # Limit to 25 items after filtering
+        ]
+
     @app_commands.command(name="opencrate", description="Open a crate and receive a random item.")
-    async def open_crate(self, interaction: discord.Interaction, crate_name: typing.Literal["Champions Crate 1"]):
+    @app_commands.autocomplete(crate_name=crates_autocomplete)
+    async def open_crate(self, interaction: discord.Interaction, crate_name: str):
         await interaction.response.defer()
 
         # Check if the crate exists in loaded data
@@ -133,71 +169,86 @@ class RocketLeagueItems(commands.Cog):
             await interaction.followup.send(embed=response)
             return
 
-        # Get item attributes including rarity, paint, and certification
-        attributes = self.get_item_attributes()
-        rarity = attributes["rarity"]
-        paint = attributes["paint"]
-        certification = attributes["certification"]
-
-        # Select a random item based on the determined rarity
-        random_item_index = random.randint(0, len(self.crates[crate_name][rarity]) - 1)
-        item = self.crates[crate_name][rarity][random_item_index]
-
-        # Build a detailed item name with color and certification
-        item_name = item
-        if paint:
-            item_name = f"{paint} {item_name}"
-        if certification:
-            item_name = f"{certification} {item_name}"
+        # Get item with attributes included
+        item = self.get_item(crate_name)
 
         # Add item to user inventory and save the update
         user_id = str(interaction.user.id)
+
+        # Ensure the user inventory exists
         if user_id not in self.user_inventories:
-            self.user_inventories[user_id] = {"items": [], "preset": {}}
-        self.user_inventories[user_id]["items"].append({
-            "name": item,
-            "rarity": rarity,
-            "paint": paint,
-            "certification": certification
-        })
-        self.save_inventories()  # Save the updated inventory
+            self.user_inventories[user_id] = {"Items": [], "Preset": {}}
 
-        attributeText = ""
-        if paint: attributeText += str(paint) + ' '
-        if certification: attributeText += str(certification) + ' '
-        
-        # Respond to the user
-        # Get color from the paint color dictionary or default to green
-        embed_color = self.paint_colors.get(paint, 0x292929 ) #292929FF
-
-        # Create the embed with the dynamic color
-        response = Embed(
-            title=f"You received: **{attributeText} '{item['name']}'**!",
-            description=f"{crate_name} Opened!",
-            color=embed_color
+        # Check if the item exists in the inventory
+        inventory_items = self.user_inventories[user_id]["Items"]
+        existing_item = next(
+            (inv_item for inv_item in inventory_items 
+            if inv_item["Name"] == item["Name"] and 
+                inv_item.get("Type") == item.get("Type") and 
+                inv_item.get("RequiredBody") == item.get("RequiredBody")),
+            None
         )
+
+        currentVersion = item["Versions"][0]
+
+        if existing_item:
+            # Get the first version from the item (assuming we're working with one version at a time)
+            matching_version = next(
+                (version for version in existing_item["Versions"]
+                if version["Rarity"] == currentVersion["Rarity"] and
+                    version["Paint"] == currentVersion["Paint"] and
+                    version["Certification"] == currentVersion["Certification"] and
+                    version["Crate"] == currentVersion["Crate"]),
+                None
+            )
+
+            if matching_version:
+                # Increment duplicates if the version exists
+                matching_version["Duplicates"] = matching_version.get("Duplicates", 1) + 1
+            else:
+                # Add a new version if it doesn't exist
+                existing_item["Versions"].append(currentVersion)
+        else:
+            # Add the item as a new entry in the inventory
+            inventory_items.append(item)
+
+        # Save updated inventory
+        self.save_inventories()
+
+        response = Embed()
+
+        # Prepare attributes for the embed
+        attributeText = " "
+        if currentVersion["Paint"]:
+            attributeText = str(currentVersion["Paint"]) + ' '
+            paint_block = self.paint_blocks.get(currentVersion["Paint"], "")
+            response.add_field(name="Paint", value=f"{paint_block} {currentVersion['Paint']}", inline=True)
+        if currentVersion["Certification"]:
+            attributeText += str(currentVersion["Certification"]) + ' '
+            response.add_field(name="Certification", value=currentVersion["Certification"], inline=True)
+
+        # Get color from the paint color dictionary or default to green
+        embed_color = self.paint_colors.get(currentVersion["Paint"], 0x292929)  # Default to 0x292929FF
+
+        response.color = embed_color
+        response.description = f"Crate: **{crate_name}** Opened!"
+        response.title = f"You received: **{attributeText}'{item['Name']}'**!"
 
         # Add item attributes to the embed
         response.add_field(name="", value="", inline=False)
-        response.add_field(name="Item", value=item["name"], inline=True)
-        response.add_field(name="Type", value=item.get("type", "/"), inline=True)
-        response.add_field(name="Vehicle", value=item.get("vehicle", "All"), inline=True)
-
-        # Add paint and certification if they exist
-        if paint:
-            paint_block = self.paint_blocks.get(paint, "")
-            response.add_field(name="Paint", value=f"{paint_block} {paint}", inline=True)
-        if certification:
-            response.add_field(name="Certification", value=certification, inline=True)
+        response.add_field(name="Item", value=item["Name"], inline=True)
+        response.add_field(name="Type", value=item.get("Type", "/"), inline=True)
+        response.add_field(name="Vehicle", value=item.get("RequiredBody", "All"), inline=True)
 
         await interaction.followup.send(embed=response)
+
 
     @app_commands.command(name="inventory", description="Check your inventory.")
     async def inventory(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         user_id = str(interaction.user.id)
-        inventory = self.user_inventories.get(user_id, {}).get("items", [])
+        inventory = self.user_inventories.get(user_id, {}).get("Items", [])
         
         if not inventory:
             response = discord.Embed(
@@ -205,15 +256,51 @@ class RocketLeagueItems(commands.Cog):
                 description="Your inventory is currently empty. Try opening a crate!",
                 color=discord.Color.orange()
             )
-        else:
-            items_list = "\n".join(f"- {item}" for item in inventory)
-            response = discord.Embed(
-                title="Your Inventory",
-                description=items_list,
-                color=discord.Color.blue()
-            )
-        
-        await interaction.followup.send(embed=response)
+            await interaction.followup.send(embed=response)
+            return
+
+        # Organize inventory by crate
+        crate_dict = {}
+        for item in inventory:
+            for version in item["Versions"]:
+                crate = version.get("Crate", "Unknown")
+                if crate not in crate_dict:
+                    crate_dict[crate] = []
+                
+                # Append item details to the corresponding crate
+                crate_dict[crate].append({
+                    "Name": item["Name"],
+                    "Type": item["Type"],
+                    "RequiredBody": item.get("RequiredBody", "None"),
+                    "Rarity": version["Rarity"],
+                    "Paint": version.get("Paint", "None"),
+                    "Certification": version.get("Certification", "None"),
+                    "Duplicates": version.get("Duplicates", "/")
+                })
+
+        # Create the text file content
+        output_lines = []
+        for crate, items in sorted(crate_dict.items()):
+            output_lines.append(f"=== {crate.upper()} ===")
+            for item in items:
+                output_lines.append(
+                    f"- {item['Name']} ({item['Type']})\n"
+                    f"  Required Body: {item['RequiredBody']}\n"
+                    f"  Rarity: {item['Rarity']}, Paint: {item['Paint']}, Certification: {item['Certification']}, Duplicates: {item['Duplicates']}\n"
+                )
+            output_lines.append("")  # Blank line between crates
+
+        # Create a file in memory
+        inventory_file = io.StringIO("\n".join(output_lines))
+        inventory_file.seek(0)
+
+        # Send the file
+        await interaction.followup.send(
+            content="Here is your inventory, sorted by crate:",
+            file=discord.File(fp=inventory_file, filename="inventory.txt")
+        )
+
+
 
     @app_commands.command(name="equip", description="Equip an item to your preset.")
     async def equip(self, interaction: discord.Interaction, item_type: str, item_name: str):
