@@ -23,28 +23,53 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 set_bot_instance(bot)
 
+
+# Function to dynamically list .py files in cogs directory
+async def cog_autocomplete(
+    interaction: discord.Interaction, 
+    current: str
+) -> typing.List[app_commands.Choice[str]]:
+    cog_path = 'D:/Programming/osrl-oscarV3/cogs'
+    cogs = [
+        file[:-3]  # Remove ".py" from filename
+        for file in os.listdir(cog_path)
+        if file.endswith('.py') and not file.startswith('__')
+    ]
+    
+    # Filter cogs based on user input
+    return [
+        app_commands.Choice(name=cog, value=cog)
+        for cog in cogs if current.lower() in cog.lower()
+    ][:25]  # Limit to 25 results to avoid exceeding Discord's limit
+
+# Load command with autocomplete
 @bot.tree.command(name="cog-load", description="Load a cog")
 @commands.has_permissions(administrator=True)
-async def load(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
+@app_commands.autocomplete(extension=cog_autocomplete)
+async def load(interaction: discord.Interaction, extension: str):
     await interaction.response.defer()
     await bot.load_extension(f'cogs.{extension}')
     await log(f'Bot loaded extension: {extension}')
     await interaction.followup.send(f"Bot loaded extension: {extension}")
 
+# Unload command with autocomplete
 @bot.tree.command(name="cog-unload", description="Unload a cog")
 @commands.has_permissions(administrator=True)
-async def unload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
+@app_commands.autocomplete(extension=cog_autocomplete)
+async def unload(interaction: discord.Interaction, extension: str):
     await interaction.response.defer()
     await bot.unload_extension(f'cogs.{extension}')
     await log(f'Bot unloaded extension: {extension}')
     await interaction.followup.send(f"Bot unloaded extension: {extension}")
 
-@bot.tree.command(name="cog-reload", description="Reload a co")
+# Reload command with autocomplete
+@bot.tree.command(name="cog-reload", description="Reload a cog")
 @commands.has_permissions(administrator=True)
-async def reload(interaction, extension: typing.Literal["ladder_bot_cog", "vcGenerator_cog", "info_cog", "ladder_admin_cog", "ladder_betting_cog"]):
+@app_commands.autocomplete(extension=cog_autocomplete)
+async def reload(interaction: discord.Interaction, extension: str):
     await interaction.response.defer()
     await bot.reload_extension(f'cogs.{extension}')
-    await log(f'Bot reloaded extension: cogs.{extension}')
+    await log(f'Bot reloaded extension: {extension}')
     await interaction.followup.send(f"Bot reloaded extension: {extension}")
 
 # Dictionary to map non-standard time zone names to valid pytz time zones
