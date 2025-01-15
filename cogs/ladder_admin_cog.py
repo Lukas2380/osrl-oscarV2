@@ -18,9 +18,9 @@ class LadderAdmin_cog(commands.Cog):
     async def add(self, interaction, player: discord.User, position: int):
         await interaction.response.defer()
 
-        if player.bot:
+        """if player.bot:
             await interaction.followup.send(embed=Embed(title="Cant add this person to the ladder.", description="This person is a bot and cant be on the ladder.", color=red))
-            return
+            return """
 
         alreadyIsInLadder = False
 
