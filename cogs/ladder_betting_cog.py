@@ -196,8 +196,12 @@ class Ladderbetting_cog(commands.Cog):
 
         return self.getBetsFromUserOnPlayer(user, player)
 
-    async def removeAllBetsFromChallenge(self, interaction, challenge):
-        channel = interaction.guild.get_channel(commands_channel)
+    async def removeAllBetsFromChallenge(challenge, self=None, interaction: discord.Interaction = None, guild: discord.Guild = None, bot: commands.Bot = None):
+        if guild:
+            channel = guild.get_channel(commands_channel)
+        else:
+            channel = interaction.guild.get_channel(commands_channel)
+
         player1, player2, _, _ = challenge.split(' - ')
         coinsback = {}
         betstoRemove = []
@@ -217,7 +221,12 @@ class Ladderbetting_cog(commands.Cog):
                     if person in wallet:
                         currentCoins = getWallet(person)
                         wallets[wallets.index(wallet)] = f'{person} - {str(int(currentCoins) + coinsback[person])}'
-                        user = await self.bot.fetch_user(int(person))
+                        
+                        if bot:
+                            user = await bot.fetch_user(int(person))
+                        else:
+                            user = await self.bot.fetch_user(int(person))
+
                         await channel.send(f'{user.mention} (Bet: {coinsback[person]}), your coins were put back into your wallet because the challenge wasnt completed.')
                         break
 

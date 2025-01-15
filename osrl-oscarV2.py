@@ -9,8 +9,9 @@ import discord
 import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
-from discord import app_commands
+from discord import Embed, Interaction, app_commands
 import requests
+from cogs.ladder_admin_cog import LadderAdmin_cog
 from cogs.ladder_betting_cog import Ladderbetting_cog
 from data.helper_functions import *
 import pytz
@@ -192,6 +193,30 @@ async def on_message(message):
                     #await message.channel.send(f"{message.author.mention}, {insult}")
                     await asyncio.sleep(120)
                     await message.channel.send(f"{random.choice(replies)}", reference = message)
+
+@bot.event
+async def on_member_remove(member):
+    # Find the player and remove them from the leaderboard
+    for leaderboardEntry in leaderboard:
+        if str(member.id) in leaderboardEntry:
+            playerIndex = leaderboard.index(str(member.id))
+            leaderboard.pop(playerIndex)
+
+            writeToFile('leaderboard', leaderboard)
+
+            # Remove the active challenge if one with the player is found
+            for challenge in activeChallenges:
+                if str(member.id) in challenge:
+                    await Ladderbetting_cog.removeAllBetsFromChallenge(challenge=challenge, guild=member.guild, bot=bot)
+                    activeChallenges.remove(challenge)
+                    break
+            writeToFile('activeChallenges', activeChallenges)
+            
+            await update_ladder(member.guild)
+            channel = bot.get_channel(1063890145897615370) # General 1v1 discussion channel
+            embed = discord.Embed(title="Player Left", description=f"Player **{member.display_name}** ({str(member.id)}) has been removed from the ladder due to leaving the server.", color=discord.Color.red())
+            return await channel.send(embed=embed)
+            break
 
 @bot.event
 async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
