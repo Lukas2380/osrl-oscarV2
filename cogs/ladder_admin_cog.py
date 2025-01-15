@@ -62,7 +62,7 @@ class LadderAdmin_cog(commands.Cog):
                 # Remove the active challenge if one with the player is found
                 for challenge in activeChallenges:
                     if str(player.id) in challenge:
-                        await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
+                        await Ladderbetting_cog.removeAllBetsFromChallenge(self=self, interaction=interaction, challenge=challenge)
                         activeChallenges.remove(challenge)
                         break
                 writeToFile('activeChallenges', activeChallenges)
@@ -112,7 +112,7 @@ class LadderAdmin_cog(commands.Cog):
                 if not alreadyLocked:
                     for challenge in activeChallenges:
                         if str(player.id) in challenge:
-                            await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
+                            await Ladderbetting_cog.removeAllBetsFromChallenge(self=self, interaction=interaction, challenge=challenge)
                             activeChallenges.remove(challenge)
 
                     # Remove player from the leaderboard and add them to the locked player list
@@ -177,7 +177,7 @@ class LadderAdmin_cog(commands.Cog):
         for challenge in activeChallenges:
             if str(player.id) in challenge:
                 noActiveChallenge = False
-                await Ladderbetting_cog.removeAllBetsFromChallenge(self, interaction, challenge)
+                await Ladderbetting_cog.removeAllBetsFromChallenge(self=self, interaction=interaction, challenge=challenge)
                 activeChallenges.remove(challenge)
                 writeToFile('activeChallenges', activeChallenges)
 
