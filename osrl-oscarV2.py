@@ -215,6 +215,7 @@ async def on_member_remove(member):
             await update_ladder(member.guild)
             channel = bot.get_channel(1063890145897615370) # General 1v1 discussion channel
             embed = discord.Embed(title="Player Left", description=f"Player **{member.display_name}** ({str(member.id)}) has been removed from the ladder due to leaving the server.", color=discord.Color.red())
+            await log(f"Player {member.display_name} ({str(member.id)}) has been removed from the ladder due to leaving the server.")
             return await channel.send(embed=embed)
             break
 
