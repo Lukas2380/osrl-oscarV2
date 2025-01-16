@@ -212,7 +212,42 @@ class LadderAdmin_cog(commands.Cog):
 
         await interaction.followup.send(embed=response)
 
-    @app_commands.command(name="admin-updatetxt", description="Takes all the txt files and changes the names to ids")
+    @app_commands.command(name="admin-changeinfo", description="Change the info text of one of the embeds")
+    async def changeinfo(self, interaction: discord.Interaction, info: typing.Literal[
+        "servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo"]):
+        await interaction.response.defer()
+        
+        # Send current info text as a file
+        await interaction.followup.send(file=discord.File(f"./data/info/{info}.txt"))
+
+        # Ask for the new info text
+        await interaction.followup.send("Please upload the new info text as a text file:")
+
+        def check(msg: discord.Message):
+            return (
+                msg.author == interaction.user
+                and msg.attachments
+                and msg.attachments[0].filename.endswith(".txt")
+            )
+
+        try:
+            # Wait for the user's response
+            msg = await self.bot.wait_for("message", check=check, timeout=1200)  # 20-minute timeout
+            attachment = msg.attachments[0]
+
+            # Download the file
+            file_path = f"./data/info/{info}.txt"
+            await attachment.save(file_path)
+
+            await interaction.followup.send(f"Info text for `{info}` has been successfully updated.")
+        except asyncio.TimeoutError:
+            await interaction.followup.send("Timeout reached. Please try again.")
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {e}")
+
+
+
+    """@app_commands.command(name="admin-updatetxt", description="Takes all the txt files and changes the names to ids")
     async def updatetxt(self, interaction):
         # This goes through all the txt files and tries to change the usernames to user ids
         await interaction.response.defer()
@@ -252,7 +287,7 @@ class LadderAdmin_cog(commands.Cog):
 
         await update_ladder(interaction.guild)
         response = Embed(title="Text Files Updated", description="The text files have been updated.", color=blue)
-        await interaction.followup.send(embed=response)
+        await interaction.followup.send(embed=response) """
 
     @app_commands.command(name="admin-updateladder", description="Command for manually updating the ladder")
     async def updateladder(self, interaction):
