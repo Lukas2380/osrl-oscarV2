@@ -1,7 +1,11 @@
+import socket
 import sqlite3
 
 # Connect to SQLite database (creates the file if it doesn't exist)
-conn = sqlite3.connect("bot_data.db")
+if socket.gethostname() == "Lukas-Desktop":
+    conn = sqlite3.connect("test_bot_data.db")
+else:
+    conn = sqlite3.connect("bot_data.db")
 cursor = conn.cursor()
 
 # Create tables (example: users table)
