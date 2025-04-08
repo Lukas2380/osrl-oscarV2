@@ -214,7 +214,7 @@ class LadderAdmin_cog(commands.Cog):
 
     @app_commands.command(name="admin-changeinfo", description="Change the info text of one of the embeds")
     async def changeinfo(self, interaction: discord.Interaction, info: typing.Literal[
-        "servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo"]):
+        "servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo", "mcinfo"]):
         await interaction.response.defer()
         
         # Send current info text as a file
