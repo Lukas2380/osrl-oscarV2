@@ -22,6 +22,7 @@ class Info_Cog(commands.Cog):
     ladderrulesChannel = None
     ladderadmininfoChannel = None
     ladderinfoChannel = None
+    mcinfoChannel = None
 
     def load_channel_ids(self):
         file_path = './data/info/setchannels.txt'
@@ -43,7 +44,8 @@ class Info_Cog(commands.Cog):
             "servstaffChannel": self.servstaffChannel,
             "ladderrulesChannel": self.ladderrulesChannel,
             "ladderadmininfoChannel": self.ladderadmininfoChannel,
-            "ladderinfoChannel": self.ladderinfoChannel
+            "ladderinfoChannel": self.ladderinfoChannel,
+            "mcinfoChannel": self.mcinfoChannel,
         }
 
         with open('./data/info/setchannels.txt', 'w') as file:
@@ -51,7 +53,7 @@ class Info_Cog(commands.Cog):
                 file.write(f"{channel_name}={channel_id}\n")
 
     @app_commands.command(name="info-setchannels", description="Set channels for the info embeds")
-    async def set_channels(self, interaction, servrules: TextChannel, servfaq: TextChannel, servanonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel):
+    async def set_channels(self, interaction, servrules: TextChannel, servfaq: TextChannel, servanonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, mcinfo: TextChannel):
         await interaction.response.defer()
         self.servrulesChannel = servrules.id
         self.servfaqChannel = servfaq.id
@@ -61,13 +63,14 @@ class Info_Cog(commands.Cog):
         self.ladderrulesChannel = ladderrules.id
         self.ladderadmininfoChannel = ladderadmininfo.id
         self.ladderinfoChannel = ladderinfo.id
+        self.mcinfoChannel = mcinfo.id
 
         # Save channel IDs to the text file
         self.save_channel_ids()
         await interaction.followup.send("Channels have been set.")
 
     @app_commands.command(name="info-resend", description="Resend one of the info texts")
-    async def info_send(self, interaction, info: typing.Literal["servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo"]):
+    async def info_send(self, interaction, info: typing.Literal["servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo", "mcinfo"]):
         await interaction.response.defer()
         channel = None
         title = ""
@@ -97,6 +100,9 @@ class Info_Cog(commands.Cog):
             case "ladderinfo":
                 channel = self.bot.get_channel(self.ladderinfoChannel)
                 title='1v1 Ladder Commands and Info'
+            case "mcinfo":
+                channel = self.bot.get_channel(self.mcinfoChannel)
+                title='Minecraft Server Info'
 
         if not channel:
             return await interaction.followup.send(embed=discord.Embed(title="Error", description="No channel for this embed selected, please use the /setchannels command."))

@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ignore SQLite databases
+*.db
+
+
 # C extensions
 *.so
 
