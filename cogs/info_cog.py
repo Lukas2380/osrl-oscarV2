@@ -1,5 +1,6 @@
 import json
 import sys
+from typing import Optional
 import discord
 from discord.ext import commands
 from discord import app_commands, TextChannel
@@ -53,21 +54,54 @@ class Info_Cog(commands.Cog):
                 file.write(f"{channel_name}={channel_id}\n")
 
     @app_commands.command(name="info-setchannels", description="Set channels for the info embeds")
-    async def set_channels(self, interaction, servrules: TextChannel, servfaq: TextChannel, servanonrep: TextChannel, servdir: TextChannel, servstaff: TextChannel, ladderrules: TextChannel, ladderadmininfo: TextChannel, ladderinfo: TextChannel, mcinfo: TextChannel):
+    @app_commands.describe(
+        servrules="Server rules channel",
+        servfaq="Server FAQ channel",
+        servanonrep="Anonymous report channel",
+        servdir="Server directory channel",
+        servstaff="Staff info channel",
+        ladderrules="Ladder rules channel",
+        ladderadmininfo="Ladder admin info channel",
+        ladderinfo="Ladder info channel",
+        mcinfo="Minecraft info channel",
+    )
+    async def set_channels(
+        self,
+        interaction,
+        servrules: Optional[TextChannel] = None,
+        servfaq: Optional[TextChannel] = None,
+        servanonrep: Optional[TextChannel] = None,
+        servdir: Optional[TextChannel] = None,
+        servstaff: Optional[TextChannel] = None,
+        ladderrules: Optional[TextChannel] = None,
+        ladderadmininfo: Optional[TextChannel] = None,
+        ladderinfo: Optional[TextChannel] = None,
+        mcinfo: Optional[TextChannel] = None,
+    ):
         await interaction.response.defer()
-        self.servrulesChannel = servrules.id
-        self.servfaqChannel = servfaq.id
-        self.servanonrepChannel = servanonrep.id
-        self.servdirChannel = servdir.id
-        self.servstaffChannel = servstaff.id
-        self.ladderrulesChannel = ladderrules.id
-        self.ladderadmininfoChannel = ladderadmininfo.id
-        self.ladderinfoChannel = ladderinfo.id
-        self.mcinfoChannel = mcinfo.id
+
+        if servrules:
+            self.servrulesChannel = servrules.id
+        if servfaq:
+            self.servfaqChannel = servfaq.id
+        if servanonrep:
+            self.servanonrepChannel = servanonrep.id
+        if servdir:
+            self.servdirChannel = servdir.id
+        if servstaff:
+            self.servstaffChannel = servstaff.id
+        if ladderrules:
+            self.ladderrulesChannel = ladderrules.id
+        if ladderadmininfo:
+            self.ladderadmininfoChannel = ladderadmininfo.id
+        if ladderinfo:
+            self.ladderinfoChannel = ladderinfo.id
+        if mcinfo:
+            self.mcinfoChannel = mcinfo.id
 
         # Save channel IDs to the text file
         self.save_channel_ids()
-        await interaction.followup.send("Channels have been set.")
+        await interaction.followup.send("Channel(s) have been updated.")
 
     @app_commands.command(name="info-resend", description="Resend one of the info texts")
     async def info_send(self, interaction, info: typing.Literal["servrules", "servfaq", "servanonrep", "servdir", "servstaff", "ladderrules", "ladderadmininfo", "ladderinfo", "mcinfo"]):
