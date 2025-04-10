@@ -7,7 +7,7 @@ class MinecraftCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server = JavaServer("144.217.48.9", 25568)  # IP and PORT as arguments for Java Edition
-        self.channel_id = 1356002378402496764  # Replace this with your VC's channel ID
+        self.channel_id = 1359911089659183134  # Replace this with your VC's channel ID
         self.update_vc.start()  # Start the periodic task
 
     @tasks.loop(minutes=5)  # Update every 5 minutes
