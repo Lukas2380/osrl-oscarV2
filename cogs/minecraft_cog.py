@@ -23,7 +23,7 @@ class MinecraftCog(commands.Cog):
             channel = self.bot.get_channel(self.channel_id)
 
             # Update the channel name with the number of players
-            await channel.edit(name=f"Players Online: {players_online}")
+            await channel.edit(name=f"Players Online: {players_online}/30")
 
         except Exception as e:
             print(f"Error updating VC name: {str(e)}")
